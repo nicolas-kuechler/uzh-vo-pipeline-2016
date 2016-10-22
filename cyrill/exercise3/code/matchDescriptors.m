@@ -7,7 +7,25 @@ function matches = matchDescriptors(...
 % respectively. matches(i) will be zero if there is no database descriptor
 % with an SSD < lambda * min(SSD). No two non-zero elements of matches will
 % be equal.
-
-
-
+    
+    [D,I] = pdist2(query_descriptors', database_descriptors', 'euclidean', 'Smallest', 1);
+    d_min = min(D);
+    
+    delta = lambda * d_min;
+    
+    n = size(query_descriptors, 2);
+    matches = zeros(2, n);
+    
+    for i = 1:n
+        
+        curr_val = D(i);
+        curr_min_val = matches(2,I(i));
+        
+        if curr_val < delta && curr_min_val == 0 || curr_min_val > curr_val
+            matches(:,I(i)) = [i; curr_val];
+        end  
+    end
+    
+    matches = matches(1,:);
+    
 end

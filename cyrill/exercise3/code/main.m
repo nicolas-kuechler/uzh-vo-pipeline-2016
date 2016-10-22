@@ -8,7 +8,7 @@ harris_kappa = 0.08;
 num_keypoints = 200;
 nonmaximum_supression_radius = 8;
 descriptor_radius = 9;
-match_lambda = 4;
+match_lambda = 3;
 
 img = imread('../data/000000.png');
 
@@ -82,5 +82,5 @@ for i = img_indices
     prev_kp = kp;
     prev_desc = desc;
     hold off;
-    pause(0.01);
+    pause(0.005);
 end
