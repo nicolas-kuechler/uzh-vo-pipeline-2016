@@ -7,9 +7,9 @@ function [ M] = estimatePoseDLT(p, P, K )
 xy = K\p;
 %xy = p;
 
-Q = createQ(P,xy(1:2, :));
+Q = createQ(P,xy(1:2, :))
 
-[U,S,V] = svd(Q);
+[U,S,V] = svd(Q)
 M = V(:,12);
 
 
@@ -30,7 +30,7 @@ end
 %Extracting a rotation matrix from R
 R = M(:,1:3);
 [U,S,V] = svd(R);
-Rtilde = U * V;
+Rtilde = U * V';
 
 a = norm(Rtilde, 'fro')/norm(R, 'fro');
 
