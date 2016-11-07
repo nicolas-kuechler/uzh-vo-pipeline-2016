@@ -12,7 +12,7 @@ poses = load('../data/poses.txt');
 % Given by the KITTI dataset:
 baseline = 0.54;
 
-% Carefully tuned by the TAs:
+% Carefully tuned b y the TAs:
 patch_radius = 5;
 min_disp = 5;
 max_disp = 50;
