@@ -10,5 +10,18 @@
 
 
 function [R,u3] = decomposeEssentialMatrix(E)
-
+    W = [0 -1 0;1 0 0;0 0 1];
+    [U,~,V] = svd(E);
+    
+    u3 = U(:,end);
+    
+    R(:,:,1) = U * W * V';
+    if det(R(:,:,1)) < 0
+        R(:,:,1) = -R(:,:,1);
+    end
+    
+    R(:,:,2) = U * W'*V';
+    if det(R(:,:,2)) < 0
+        R(:,:,2) = -R(:,:,2);
+    end   
 end

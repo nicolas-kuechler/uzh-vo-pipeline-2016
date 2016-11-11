@@ -11,6 +11,16 @@
 
 function P = linearTriangulation(p1,p2,M1,M2)
 
+N = size(p1, 2);
+P_homog = zeros(4,N);
+for i=1:N
+    cross_p1 = createCrossProdMat(p1(:,i));
+    cross_p2 = createCrossProdMat(p2(:,i));
+    A = [cross_p1 * M1; cross_p2 * M2];
+    [~,~,V] = svd(A);
+    P_homog(:,i) = V(:,end);
+end
+    P = P_homog ./ P_homog(4,:);
 end
 
 
