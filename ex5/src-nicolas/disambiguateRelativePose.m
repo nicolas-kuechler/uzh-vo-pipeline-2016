@@ -20,6 +20,27 @@
 %
 
 function [R,T] = disambiguateRelativePose(Rots,u3,p1,p2,K1,K2)
-
+    M1= K1 * [eye(3) zeros(3,1)];
+    
+    M2(:,:,1) = K2 * [Rots(:,:,1) u3];
+    M2(:,:,2) = K2 * [Rots(:,:,2) u3];
+    M2(:,:,3) = K2 * [Rots(:,:,1) -u3];
+    M2(:,:,4) = K2 * [Rots(:,:,2) -u3];
+    
+    max_pos_point_count = 0
+    max_i = 0;
+    for i = 1:4
+      P = linearTriangulation(p1,p2,M1,M2(:,:,i));
+      pos_point_count = sum(P(3,:)>0)
+      
+      if(pos_point_count > max_pos_point_count)
+          max_pos_point_count = pos_point_count;
+          max_i = i;
+      end
+    end
+ 
+    RT = inv(K2) * M2(:,:,max_i);
+    R = RT(1:3,1:3);
+    T = RT(1:3,4);
 end
 

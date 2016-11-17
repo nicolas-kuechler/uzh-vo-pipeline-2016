@@ -16,4 +16,13 @@
 
 function F = fundamentalEightPoint_normalized(p1, p2)
 
+%1st Normalize
+[norm_p1,T1] = normalise2dpts(p1);
+[norm_p2,T2] = normalise2dpts(p2);
+
+%2nd calc fundamental matrix
+F = fundamentalEightPoint(norm_p1,norm_p2);
+
+%3rd Unnormalize
+F = T2'*F*T1;
 end

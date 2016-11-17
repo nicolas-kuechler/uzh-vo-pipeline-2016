@@ -15,5 +15,13 @@
 
 
 function F = fundamentalEightPoint(p1,p2)
+Q = buildQ(p1,p2);
+[~,~,V] = svd(Q);
 
+vec_F = V(:,end);
+F = reshape(vec_F,[3,3]); %by error try using not the transpose
+
+[U,S,V] = svd(F);
+S(end,end) = 0;
+F = U * S * V';
 end
