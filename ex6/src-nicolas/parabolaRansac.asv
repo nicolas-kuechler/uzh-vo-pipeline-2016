@@ -29,7 +29,7 @@ for i=1:k
     m = polyval(p,data(1,:));
     err = abs(data(2,:)-m);
     
-    guess_index = ind(err<=max_noise)
+    guess_index = ind(err(err<=max_noise))
     num_inliers = numel(guess_index);
 
     
@@ -44,7 +44,7 @@ for i=1:k
 end
     
     p = polyfit(data(1,best_guess_index),data(2,best_guess_index),2);
-    m = polyval(p, data(1,:));
+    m = polyval(p, data(2,:));
     err = abs(data(2,:)-m);
     guess_index = ind(err<=max_noise);
     num_inliers = numel(guess_index);
