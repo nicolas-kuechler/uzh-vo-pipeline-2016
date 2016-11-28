@@ -31,10 +31,11 @@ database_image = imread('../data/000000.png');
 % Dependencies
 addpath('plot');
 % Replace the following with the path to your DLT code:
-addpath('../../01_pnp/code');
+addpath('../../ex2/src-solution/');
 % Replace the following with the path to your keypoint matcher code:
-addpath('../../02_detect_describe_match/code');
+addpath('../../ex3/src-solution/');
 
+addpath
 %% Part 1 - RANSAC with parabola model
 [best_guess_history, max_num_inliers_history] = ...
     parabolaRansac(data, max_noise);
