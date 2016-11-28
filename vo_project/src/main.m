@@ -1,3 +1,7 @@
+clc;
+clear all;
+close all;
+
 %% Setup
 ds = 2; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '..\data\kitti';
