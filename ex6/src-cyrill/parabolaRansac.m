@@ -39,9 +39,6 @@ inliers = data(:,dists <= max_noise);
 
 best_guess_opt = polyfit(inliers(1,:), inliers(2,:), 2);
 
-dists = abs(data(2,:) - polyval(best_guess_opt, data(1,:)));
-
-% max_num_inliers_history(k+1) = numel(dists(dists <= max_noise));
 best_guess_history(:,k+1) = best_guess_opt;
 end
 
