@@ -36,9 +36,10 @@ addpath('../../01_pnp/code');
 addpath('../../02_detect_describe_match/code');
 
 %% Part 1 - RANSAC with parabola model
+tic
 [best_guess_history, max_num_inliers_history] = ...
     parabolaRansac(data, max_noise);
-
+toc
 % Compare with full data fit.
 full_fit = polyfit(data(1, :), data(2, :), 2);
 

@@ -30,16 +30,15 @@ database_image = imread('../data/000000.png');
 
 % Dependencies
 addpath('plot');
-
-addpath('../../ex1/src-solution');
 % Replace the following with the path to your DLT code:
-addpath('../../ex2/src-solution');
+addpath('../../01_pnp/code');
 % Replace the following with the path to your keypoint matcher code:
-addpath('../../ex3/src-solution');
+addpath('../../02_detect_describe_match/code');
 
 %% Part 1 - RANSAC with parabola model
 [best_guess_history, max_num_inliers_history] = ...
     parabolaRansac(data, max_noise);
+
 % Compare with full data fit.
 full_fit = polyfit(data(1, :), data(2, :), 2);
 
