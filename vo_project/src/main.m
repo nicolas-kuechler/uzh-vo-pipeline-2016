@@ -3,6 +3,7 @@ clear all;
 close all;
 
 addpath('../src/03_stereo');
+addpath('../src/04_8point/triangulation');
 
 %% Setup
 ds = 0; % 0: KITTI, 1: Malaga, 2: parking
