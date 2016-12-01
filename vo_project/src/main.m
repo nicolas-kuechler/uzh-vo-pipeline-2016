@@ -1,8 +1,14 @@
+clc;
+clear all;
+close all;
+
+addpath(genpath('./'));
+
 %% Setup
 ds = 0; % 0: KITTI, 1: Malaga, 2: parking
-kitti_path = '..\data\kitti';
-malaga_path = '..\data\malaga-urban-dataset-extract-07';
-parking_path = '..\data\parking';
+kitti_path = '../data/kitti';
+malaga_path = '../data/malaga-urban-dataset-extract-07';
+parking_path = '../data/parking';
 
 if ds == 0
     % need to set kitti_path to folder containing "00" and "poses"
@@ -59,6 +65,8 @@ elseif ds == 2
 else
     assert(false);
 end
+
+initializePointCloudMono(img0,img1,K);
 
 %% Continuous operation
 range = (bootstrap_frames(2)+1):last_frame;
