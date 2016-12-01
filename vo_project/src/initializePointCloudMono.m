@@ -1,7 +1,23 @@
-function Point_Cloud = initializePointCloudMono( img0, img1, K )
-%INITIALIZEPOINTCLOUDSTEREO Summary of this function goes here
-%   Detailed explanation goes here
+function [R1, T1, repr_error, Point_Cloud] = initializePointCloudMono( img0, img1, K )
+%INITIALIZEPOINTCLOUDSTEREO Determines pose of camera with img1 in frame of 
+% camera with img0. Also determines point cloud of features in left image 
+% in left image frame. 
 
+% inputs: img0: N x M image of left camera
+%         img1: N x M image of right camera
+%         K: calibration matrix of both cameras
+%
+% outputs: R1: rotation of camera 1 in frame of camera 0
+%          T1: translation of camera 1 in frame of camera 0
+%          repr_error: average reprojection error of reprojected point cloud into
+%                      right image.
+%          Point_Cloud: [3xL] array of 3d points triangulated from features
+%                       in left image in left image frame.
+
+
+% parameters to perform feature detecction and matching
+% TODO: optimize parameters to reduce reprojection error, pose error
+% (compared to ground truth)
 harris_patch_size = 9;
 harris_kappa = 0.08;
 num_keypoints = 500;
@@ -9,98 +25,97 @@ nonmaximum_supression_radius = 8;
 descriptor_radius = 9;
 match_lambda = 5;
 
-scores0 = harris(img0,harris_patch_size,harris_kappa);
-kp0 = selectKeypoints(scores0,num_keypoints,nonmaximum_supression_radius);
+% extract features and descriptors from left image
+scores0 = harris(img0, harris_patch_size, harris_kappa);
+kp0 = selectKeypoints(scores0, num_keypoints, nonmaximum_supression_radius);
+desc0 = describeKeypoints(img0, kp0, descriptor_radius);
 
-scores1 = harris(img1,harris_patch_size,harris_kappa);
-kp1 = selectKeypoints(scores1,num_keypoints,nonmaximum_supression_radius);
+% extract features and descriptors from left image
+scores1 = harris(img1, harris_patch_size, harris_kappa);
+kp1 = selectKeypoints(scores1, num_keypoints, nonmaximum_supression_radius);
+desc1 = describeKeypoints(img1, kp1, descriptor_radius);
 
-desc0 = describeKeypoints(img0,kp0,descriptor_radius);
-desc1 = describeKeypoints(img1,kp1,descriptor_radius);
+% match key points from left (database) to right image (query)
+% and remove unmatched points
+matches = matchDescriptors(desc1, desc0, match_lambda);
+kp1_matched = kp1(:, matches ~= 0);
+kp0_matched = kp0(:, matches(matches ~= 0));
 
-matches = matchDescriptors(desc1,desc0,match_lambda);
-
-kp1_matched = flipud(kp1(:,matches ~= 0));
-kp0_matched = flipud(kp0(:,matches(matches ~= 0)));
-
-kp0_matched = [kp0_matched; ones(size(kp0_matched(1,:)))];
-kp1_matched = [kp1_matched; ones(size(kp1_matched(1,:)))];
-
+% perform RANSAC to find best R and T through 8pt algorithm
 k = 8;
 num_iterations = 1000;
-max_num_inliers_history = zeros(1,num_iterations);
 max_num_inliers = 0;
 pixel_tolerance = 3;
 inlier_mask = [];
-
     
 for i = 1:num_iterations
+    % randomly sample k key points
+    [kp0_selected, idx] = datasample(kp0_matched, k, 2, 'Replace', false);
     
-    r = randi([1,size(kp0_matched,2)],k,1);
-    
-    [kp0_selected, idx] = datasample(...
-        kp0_matched, k, 2, 'Replace', false);
-    
-
+    % find corresponding right key points and put them in same order as
+    % left selected keypoints
     kp1_selected = kp1_matched(:, idx);
     
+    % estimate R and T from left to right image frame through essential
+    % matrix
     E = estimateEssentialMatrix(kp0_selected, kp1_selected, K, K);
+    [Rots, u3] = decomposeEssentialMatrix(E);
+    [R1, T1] = disambiguateRelativePose(Rots, u3, kp0_selected, kp1_selected, K, K);
     
-    [Rots,u3] = decomposeEssentialMatrix(E);
-    [R1,T1] = disambiguateRelativePose(Rots,u3,kp0_selected,kp1_selected,K,K);
-    Points_3d = linearTriangulation(kp0_matched,kp1_matched,K*eye(3,4),K*[R1,T1]);
-    Points_3d = Points_3d(1:3,:);
+    % Find 3d point cloud in left camera frame through linear triangulation
+    Points_3d = linearTriangulation(kp0_matched, kp1_matched, ...
+        K * eye(3,4), K * [R1, T1]);
     
-    kp1_reprojected = reprojectPoints(Points_3d', [R1,T1], K);
+    % reproject them into the right image
+    kp1_reprojected = reprojectPoints(Points_3d, [R1, T1], K);
     
-    difference = kp1_matched(1:2,:) - kp1_reprojected';
+    % find the inliers in the right image
+    difference = kp1_matched - kp1_reprojected;
     errors = sum(difference.^2, 1);
     is_inlier = errors < pixel_tolerance^2;
     
-    if nnz(is_inlier) > max_num_inliers && nnz(is_inlier) >= k
+    % update inlier mask if sample with higher inlier count is found
+    if nnz(is_inlier) > max_num_inliers
         max_num_inliers = nnz(is_inlier);        
         inlier_mask = is_inlier;
     end
-    
-    max_num_inliers_history(i) = max_num_inliers;
-    
 end
 
+% With inlier mask with highest inlier count do 8point algorithm on all
+% inliers
 if max_num_inliers == 0
     Point_Cloud = [];
 else
-    kp0_selected = kp0_matched(:,inlier_mask);
-    kp1_selected = kp1_matched(:,inlier_mask);
+    % select inlier key points from left and right
+    kp0_selected = kp0_matched(:, inlier_mask);
+    kp1_selected = kp1_matched(:, inlier_mask);
     
+    % estimate essential matrix to determine R and T of right image
     E = estimateEssentialMatrix(kp0_selected, kp1_selected, K, K);
+    [Rots, u3] = decomposeEssentialMatrix(E);
+    [R1, T1] = disambiguateRelativePose(Rots, u3, kp0_selected, ...
+        kp1_selected, K, K);
     
-    [Rots,u3] = decomposeEssentialMatrix(E);
-    [R1,T1] = disambiguateRelativePose(Rots,u3,kp0_selected,kp1_selected,K,K);
+    % find the point cloud in left camera frame
+    Point_Cloud = linearTriangulation(kp0_selected, kp1_selected, ...
+        K * eye(3,4),K * [R1, T1]);
     
-    Point_Cloud = linearTriangulation(kp0_selected,kp1_selected,K * eye(3,4),K * [R1,T1]);
-    Point_Cloud = Point_Cloud(1:3,:);
+    % get reprojection error of point cloud into right image
+    kp1_reprojected = reprojectPoints(Point_Cloud,[R1, T1],K);
+    difference = kp1_selected - kp1_reprojected;
+    repr_error = sum(difference(:).^2) / size(difference, 2);
 end
+
+%% DEBUG: (delete after testing)
 debug = 1;
 
 if(debug)
-    subplot(2,1,1), imshow(img0);
+    imshow(img0);
     hold on;
-    kp1_reprojected = reprojectPoints(Point_Cloud',[R1,T1],K);
     plot(kp1_matched(1,:), kp1_matched(2,:), 'rx', 'Linewidth', 2);
-    plot(kp1_reprojected(:, 1)', kp1_reprojected(:, 2)', 'bx', 'Linewidth', 2);
+    plot(kp1_reprojected(1,:), kp1_reprojected(2,:), 'bx', 'Linewidth', 2);
     
-    title('Left Image (Blue matches)');
-    
-    
-    subplot(2,1,2), scatter3(Point_Cloud(1, :), Point_Cloud(2, :), Point_Cloud(3, :), ...
-        20 * ones(1, length(Point_Cloud)));
-    axis equal;
-    axis vis3d;
-    grid off;
-    xlabel('X');
-    ylabel('Y');
-    zlabel('Z');
-    title('3D Point matches');
+    title('Left Image (Red matches: Inlier keypoints, blue matches: reprojected point cloud.');
 end
 
 end
