@@ -1,4 +1,4 @@
-function [points, desc ] = initializePointCloudStereo(left_img, right_img ,K)
+function [p_W_landmarks, keypoints] = initializePointCloudStereo(left_img, right_img ,K)
 
 
 debug = true;
@@ -22,7 +22,6 @@ right_desc = describeKeypoints(right_img, right_kp, descriptor_radius);
 matches = matchDescriptors(right_desc, left_desc, match_lambda);
 
 left_kp_matched = left_kp(:,matches(matches ~= 0));
-left_desc_matched = left_desc(:,matches(matches ~= 0));
 right_kp_matched = right_kp(:,matches ~= 0);
 
 % Build a disparity image from the harris keypoint matching directly
@@ -37,8 +36,8 @@ disp_img(lin_index)=left_kp_matched(2,:) - right_kp_matched(2,:);
 p_F_points = [0 -1 0; 0 0 -1; 1 0 0]^-1 * points;
 
 
-points = p_F_points;
-desc = left_desc_matched;
+p_W_landmarks = p_F_points;
+keypoints = left_kp_matched;
 
 % Only to visualize the 3D points
 if(debug)

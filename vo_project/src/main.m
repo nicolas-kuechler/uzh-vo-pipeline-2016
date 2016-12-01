@@ -44,13 +44,13 @@ end
 
 %% Bootstrap
 % need to set bootstrap_frames
-bootstrap_frames = [000001 000001];
+bootstrap_frames = [000000 000000];
 
 if ds == 0
     img0 = imread([kitti_path '/00/image_0/' ...
         sprintf('%06d.png',bootstrap_frames(1))]);
     img1 = imread([kitti_path '/00/image_1/' ...
-        sprintf('%06d.png',bootstrap_frames(2))]);
+        sprintf('%06d.png',bootstrap_frames(2))]); %NEED TO CHANGE PATH WHEN CHANGING TO NONE STEREO INIT
 elseif ds == 1
     img0 = rgb2gray(imread([malaga_path ...
         '/malaga-urban-dataset-extract-07_rectified_800x600_Images/' ...
@@ -67,7 +67,9 @@ else
     assert(false);
 end
 
-[repr_error, points] = initializePointCloudStereo(img0,img1,K)
+
+
+[p_W_landmarks, keypoints] = initializePointCloudStereo(img0,img1,K); %NEED TO CHANGE PATH WHEN CHANGING TO NONE STEREO INIT
 
 %% Continuous operation
 range = (bootstrap_frames(2)+1):last_frame;
