@@ -2,14 +2,13 @@ clc;
 clear all;
 close all;
 
-addpath('../src/03_stereo');
-addpath('../src/04_8point/triangulation');
+addpath(genpath('./'));
 
 %% Setup
 ds = 0; % 0: KITTI, 1: Malaga, 2: parking
-kitti_path = '..\data\kitti';
-malaga_path = '..\data\malaga-urban-dataset-extract-07';
-parking_path = '..\data\parking';
+kitti_path = '../data/kitti';
+malaga_path = '../data/malaga-urban-dataset-extract-07';
+parking_path = '../data/parking';
 
 if ds == 0
     % need to set kitti_path to folder containing "00" and "poses"
@@ -44,13 +43,13 @@ end
 
 %% Bootstrap
 % need to set bootstrap_frames
-bootstrap_frames = [000000 000000];
+bootstrap_frames = [000001 000003];
 
 if ds == 0
     img0 = imread([kitti_path '/00/image_0/' ...
         sprintf('%06d.png',bootstrap_frames(1))]);
-    img1 = imread([kitti_path '/00/image_1/' ...
-        sprintf('%06d.png',bootstrap_frames(2))]); %NEED TO CHANGE PATH WHEN CHANGING TO NONE STEREO INIT
+    img1 = imread([kitti_path '/00/image_0/' ...
+        sprintf('%06d.png',bootstrap_frames(2))]);
 elseif ds == 1
     img0 = rgb2gray(imread([malaga_path ...
         '/malaga-urban-dataset-extract-07_rectified_800x600_Images/' ...
@@ -67,9 +66,7 @@ else
     assert(false);
 end
 
-
-
-[p_W_landmarks, keypoints] = initializePointCloudStereo(img0,img1,K); %NEED TO CHANGE PATH WHEN CHANGING TO NONE STEREO INIT
+initializePointCloudMono(img0,img1,K);
 
 %% Continuous operation
 range = (bootstrap_frames(2)+1):last_frame;
