@@ -4,6 +4,9 @@ close all;
 
 addpath(genpath('./'));
 
+R_list = [];
+T_list = [];
+
 %% Setup
 ds = 0; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
@@ -66,7 +69,7 @@ else
     assert(false);
 end
 
-initializePointCloudMono(img0,img1,K);
+[R1, T1, repr_error, Point_Cloud] = initializePointCloudMono(img0,img1,K);
 
 %% Continuous operation
 range = (bootstrap_frames(2)+1):last_frame;
