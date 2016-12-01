@@ -43,12 +43,12 @@ end
 
 %% Bootstrap
 % need to set bootstrap_frames
-bootstrap_frames = [000001 000003];
+bootstrap_frames = [000001 000001];
 
 if ds == 0
     img0 = imread([kitti_path '/00/image_0/' ...
         sprintf('%06d.png',bootstrap_frames(1))]);
-    img1 = imread([kitti_path '/00/image_0/' ...
+    img1 = imread([kitti_path '/00/image_1/' ...
         sprintf('%06d.png',bootstrap_frames(2))]);
 elseif ds == 1
     img0 = rgb2gray(imread([malaga_path ...
@@ -86,6 +86,8 @@ for i = range
     end
     % Makes sure that plots refresh.    
     pause(0.01);
+    
+    
     
     prev_img = image;
 end

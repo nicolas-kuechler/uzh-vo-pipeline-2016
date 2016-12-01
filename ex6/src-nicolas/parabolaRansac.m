@@ -29,26 +29,18 @@ for i=1:k
     m = polyval(p,data(1,:));
     err = abs(data(2,:)-m);
     
-    guess_index = ind(err<=max_noise)
+    guess_index = ind(err<=max_noise);
     num_inliers = numel(guess_index);
-
     
     if(num_inliers > max_num_inliers)
         max_num_inliers = num_inliers;
         best_guess_index = guess_index;
         best_poly = p;
     end
-    
         max_num_inliers_history(1,i) = max_num_inliers;
         best_guess_history(:,i) = best_poly;
 end
-    
     p = polyfit(data(1,best_guess_index),data(2,best_guess_index),2);
-    m = polyval(p, data(1,:));
-    err = abs(data(2,:)-m);
-    guess_index = ind(err<=max_noise);
-    num_inliers = numel(guess_index);
-    max_num_inliers_history(1,k+1) = num_inliers;
     best_guess_history(:,k+1) = p;
 end
 
