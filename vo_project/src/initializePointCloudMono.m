@@ -2,14 +2,12 @@ function Point_Cloud = initializePointCloudMono( img0, img1, K )
 %INITIALIZEPOINTCLOUDSTEREO Summary of this function goes here
 %   Detailed explanation goes here
 
-rng(2);
-
 harris_patch_size = 9;
 harris_kappa = 0.08;
-num_keypoints = 200;
+num_keypoints = 500;
 nonmaximum_supression_radius = 8;
 descriptor_radius = 9;
-match_lambda = 4;
+match_lambda = 5;
 
 scores0 = harris(img0,harris_patch_size,harris_kappa);
 kp0 = selectKeypoints(scores0,num_keypoints,nonmaximum_supression_radius);
@@ -32,7 +30,7 @@ k = 8;
 num_iterations = 1000;
 max_num_inliers_history = zeros(1,num_iterations);
 max_num_inliers = 0;
-pixel_tolerance = 5;
+pixel_tolerance = 3;
 inlier_mask = [];
 
     
@@ -40,8 +38,11 @@ for i = 1:num_iterations
     
     r = randi([1,size(kp0_matched,2)],k,1);
     
-    kp0_selected = kp0_matched(:, r);
-    kp1_selected = kp1_matched(:, r);
+    [kp0_selected, idx] = datasample(...
+        kp0_matched, k, 2, 'Replace', false);
+    
+
+    kp1_selected = kp1_matched(:, idx);
     
     E = estimateEssentialMatrix(kp0_selected, kp1_selected, K, K);
     
