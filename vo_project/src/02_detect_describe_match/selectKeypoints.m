@@ -13,5 +13,6 @@ for i = 1:num
         zeros(2*r + 1, 2*r + 1);
 end
 
+keypoints = flipud(keypoints);
 end
 

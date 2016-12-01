@@ -1,15 +1,18 @@
 % LINEARTRIANGULATION  Linear Triangulation
 %
 % Input:
-%  - p1(3,N): homogeneous coordinates of points in image 1
-%  - p2(3,N): homogeneous coordinates of points in image 2
-%  - M1(3,4): projection matrix corresponding to first image
-%  - M2(3,4): projection matrix corresponding to second image
+%  - p1(2,N): coordinates of points in image 1
+%  - p2(2,N): coordinates of points in image 2
+%  - M1(3,4): projection matrix (includes K and [R T]) corresponding to first image
+%  - M2(3,4): projection matrix (includes K and [R T]) corresponding to second image
 %
 % Output:
-%  - P(4,N): homogeneous coordinates of 3-D points
+%  - P(3,N): coordinates of 3-D points in camera frame
 
-function P = linearTriangulation(p1,p2,M1,M2)
+function P = linearTriangulation(p1, p2, M1, M2)
+% convert to homogeneous coordinates
+p1 = [p1; ones(1, size(p1, 2))];
+p2 = [p2; ones(1, size(p2, 2))];
 
 % Sanity checks
 [dim,NumPoints] = size(p1);
@@ -38,7 +41,7 @@ for j=1:NumPoints
 end
 
 P = P./repmat(P(4,:),4,1); % Dehomogeneize (P is expressed in homogeneous coordinates)
-
+P = P(1:3, :);
 return
 
 

@@ -3,6 +3,9 @@ function descriptors = describeKeypoints(img, keypoints, r)
 % img and a 2xN matrix containing the keypoint coordinates.
 % r is the patch "radius".
 
+% flips  keypoints
+keypoints = flipud(keypoints);
+
 N = size(keypoints, 2);
 descriptors = uint8(zeros((2*r+1) ^ 2, N));
 padded = padarray(img, [r, r]);

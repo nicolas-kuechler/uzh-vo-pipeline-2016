@@ -5,8 +5,8 @@
 % Arguments:
 %   Rots -  3x3x2: the two possible rotations returned by decomposeEssentialMatrix
 %   u3   -  a 3x1 vector with the translation information returned by decomposeEssentialMatrix
-%   p1   -  3xN homogeneous coordinates of point correspondences in image 1
-%   p2   -  3xN homogeneous coordinates of point correspondences in image 2
+%   p1   -  2xN coordinates of point correspondences in image 1
+%   p2   -  2xN coordinates of point correspondences in image 2
 %   K1   -  3x3 calibration matrix for camera 1
 %   K2   -  3x3 calibration matrix for camera 2
 %
@@ -19,7 +19,7 @@
 %   to camera 1.
 %
 
-function [R,T] = disambiguateRelativePose(Rots,u3,points0_h,points1_h,K0,K1)
+function [R,T] = disambiguateRelativePose(Rots, u3, points0, points1, K0, K1)
 
 M0 = K0 * eye(3,4); % Projection matrix of camera 1
 
@@ -31,10 +31,11 @@ for iRot = 1:2
         T_C1_C0_test = u3 * (-1)^iSignT;
         
         M1 = K1 * [R_C1_C0_test, T_C1_C0_test];
-        P_C0 = linearTriangulation(points0_h,points1_h,M0,M1);
+        
+        P_C0 = linearTriangulation(points0,points1,M0,M1);
         
         % project in both cameras
-        P_C1 = [R_C1_C0_test T_C1_C0_test] * P_C0;
+        P_C1 = [R_C1_C0_test T_C1_C0_test] * [P_C0; ones(1, size(P_C0,2))];
         
         num_points_in_front0 = sum(P_C0(3,:) > 0);
         num_points_in_front1 = sum(P_C1(3,:) > 0);
