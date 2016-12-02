@@ -4,9 +4,7 @@ close all;
 
 addpath(genpath('./'));
 
-R_list = [];
-T_list = [];
-
+Ts = [];
 %% Setup
 ds = 0; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
@@ -69,32 +67,38 @@ else
     assert(false);
 end
 
-[R1, T1, repr_error, Point_Cloud] = initializePointCloudMono(img0,img1,K);
+[R1, T1, repr_error, pt_cloud_kf, keypoints_kf, keypoints_r] = initializePointCloudMono(img0,img1,K);
 
+% state 
+prev_state = struct('T_kf', eye(3,4), ...
+                    'pt_cloud_kf', Point_Cloud, ...
+                    'keypoints_kf', keypoints_kf, ...
+                    'T_c', [R1 T1], ...
+                    'keypoints_c', keypoints_r);
 %% Continuous operation
 range = (bootstrap_frames(2)+1):last_frame;
 for i = range
-    prev_img = img0;
+    prev_img = img1;
     fprintf('\n\nProcessing frame %d\n=====================\n', i);
     if ds == 0
-        image = imread([kitti_path '/00/image_0/' sprintf('%06d.png',i)]);
+        next_image = imread([kitti_path '/00/image_0/' sprintf('%06d.png',i)]);
     elseif ds == 1
-        image = rgb2gray(imread([malaga_path ...
+        next_image = rgb2gray(imread([malaga_path ...
             '/malaga-urban-dataset-extract-07_rectified_800x600_Images/' ...
             left_images(i).name]));
     elseif ds == 2
-        image = im2uint8(rgb2gray(imread([parking_path ...
+        next_image = im2uint8(rgb2gray(imread([parking_path ...
             sprintf('/images/img_%05d.png',i)])));
     else
         assert(false);
     end
-    %[ key_frame_key_points, Point_Cloud, R_next, T_next ] = ...
-    processFrame(image, prev_img, key_frame_key_points, Point_Cloud, K);
     
-    R_list = [R_list, R_next];
-    T_list = [T_list, T_next];
+    [ curr_T, curr_state ] = processFrame(next_image, prev_img, prev_state, K);
+
     % Makes sure that plots refresh.    
     pause(0.01);
     
-    prev_img = image;
+    Ts = [Ts, curr_T];
+    prev_img = curr_image;
+    prev_state = curr_state;
 end
