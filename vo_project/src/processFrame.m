@@ -26,7 +26,7 @@ function [ next_T_c, next_state ] = processFrame(next_img, prev_img, prev_state,
 T_kf = prev_state.T_kf; % pose of last key frame
 pt_cloud_kf = prev_state.pt_cloud_kf; % pt_cloud w. r. t. last key frame
 T_c = prev_state.T_c; % current pose
-keypoints_c = prev_state.keypoints_c; % current keypoints (tracked)
+keypoints_c = prev_state.keypoints_c; % previous keypoints (tracked)
 correspondence_c = prev_state.correspondence; % correspondence (entry i is j. ith tracked keypoint <-> jth 3D point)
 
 % create pointTracker
@@ -73,12 +73,21 @@ if debug
     figure;
     imshow(next_img);
     hold on;
+    % plot new keypoints
     plot(next_keypoints_c(1,:), next_keypoints_c(2,:), 'rx', 'Linewidth', 2);
+    
+    % plot old keypoints
+    plot(keypoints_c(1,:), keypoints_c(2,:), 'yx', 'Linewidth', 2);
+    
+    % plot correspondences
+    quiver(keypoints_c(1,:),keypoints_c(2,:),...
+        -keypoints_c(1,:)+next_keypoints(1,:), -keypoints_c(2,:)+next_keypoints(2,:), 0);
+    
     % plot reprojected
     next_keypoints_reprojected = reprojectPoints(pt_cloud_kf, next_T_c, K);
     plot(next_keypoints_reprojected(1,:), next_keypoints_reprojected(2,:), ...
         'bx', 'Linewidth', 2);
     
-    title('Next Image (Red matches: Inlier keypoints, blue matches: reprojected point cloud.');
+    title('Next Image (Red matches: tracked inlier keypoints, blue matches: reprojected point cloud.');
 end
 
