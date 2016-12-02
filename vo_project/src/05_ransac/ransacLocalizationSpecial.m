@@ -7,15 +7,15 @@ function [R_C_W, t_C_W, inlier_mask] = ...
 %   matched keypoints (!!!), 0 if the match is an outlier, 1 otherwise.
 assert(size(query_keypoints, 2 ) == size(all_matches,2));
 
-use_p3p = false;
+use_p3p = true;
 
 if use_p3p
     num_iterations = 200;
-    pixel_tolerance = 3;
+    pixel_tolerance = 10;
     k = 3;
 else
     num_iterations = 2000;
-    pixel_tolerance = 5;
+    pixel_tolerance = 10;
     k = 6;
 end
 
@@ -24,6 +24,8 @@ corresponding_landmarks = p_W_landmarks(:, all_matches);
 % Initialize RANSAC.
 inlier_mask = zeros(1, size(query_keypoints, 2));
 max_num_inliers = 0;
+
+alt = 0;
 
 % RANSAC
 for i = 1:num_iterations
@@ -54,37 +56,39 @@ for i = 1:num_iterations
     end
     
     % Count inliers:
-    projected_points = projectPoints(...
-        (R_C_W_guess(:,:,1) * corresponding_landmarks) + ...
-        repmat(t_C_W_guess(:,:,1), ...
-        [1 size(corresponding_landmarks, 2)]), K);
+        projected_points = reprojectPoints(corresponding_landmarks, ...
+            [R_C_W_guess(:,:,1) t_C_W_guess(:,:,1)], K);
     difference = query_keypoints - projected_points;
     errors = sum(difference.^2, 1);
     is_inlier = errors < pixel_tolerance^2;
     
     if use_p3p
-        projected_points = projectPoints(...
-            (R_C_W_guess(:,:,2) * corresponding_landmarks) + ...
-            repmat(t_C_W_guess(:,:,2), ...
-            [1 size(corresponding_landmarks, 2)]), K);
+        projected_points = reprojectPoints(corresponding_landmarks, ...
+            [R_C_W_guess(:,:,2) t_C_W_guess(:,:,2)], K);
+
         difference = query_keypoints - projected_points;
         errors = sum(difference.^2, 1);
         alternative_is_inlier = errors < pixel_tolerance^2;
         if nnz(alternative_is_inlier) > nnz(is_inlier)
+            alt = 2;
             is_inlier = alternative_is_inlier;
+        else
+            alt = 1;
         end
     end
     
     if nnz(is_inlier) > max_num_inliers
         max_num_inliers = nnz(is_inlier);        
         inlier_mask = is_inlier;
+        R_C_W = R_C_W_guess(:,:,alt);
+        t_C_W = t_C_W_guess(:,:,alt);
     end
 end
 
 if max_num_inliers == 0
     R_C_W = [];
     t_C_W = [];
-else
+elseif ~use_p3p
     M_C_W = estimatePoseDLT(...
         query_keypoints(:, inlier_mask>0), ...
         corresponding_landmarks(:, inlier_mask>0), K);
