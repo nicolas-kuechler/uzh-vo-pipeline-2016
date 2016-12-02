@@ -11,7 +11,7 @@ function M = estimatePoseDLT(p, P, K)
 %    frame to the camera frame
 
 % Convert 2D points to normalized coordinates
-p_normalized = (K \ [p ones(length(p),1)]')';
+p_normalized = (K \ [p ;ones(1,length(p))])';
 
 % Build the measurement matrix Q
 num_corners = length(p_normalized);
@@ -21,13 +21,13 @@ for i=1:num_corners
     u = p_normalized(i,1);
     v = p_normalized(i,2);
     
-    Q(2*i-1,1:3) = P(i,:);
+    Q(2*i-1,1:3) = P(:,i)';
     Q(2*i-1,4) = 1;
-    Q(2*i-1,9:12) = -u * [P(i,:) 1];
+    Q(2*i-1,9:12) = -u * [P(:,i)' 1];
     
-    Q(2*i,5:7) = P(i,:);
+    Q(2*i,5:7) = P(:,i)';
     Q(2*i,8) = 1;
-    Q(2*i,9:12) = -v * [P(i,:) 1];
+    Q(2*i,9:12) = -v * [P(:,i)' 1];
 end
 
 % Solve for Q.M = 0 subject to the constraint ||M||=1

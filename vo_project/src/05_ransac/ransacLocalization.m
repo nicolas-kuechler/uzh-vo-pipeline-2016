@@ -7,7 +7,7 @@ function [R_C_W, t_C_W, query_keypoints, all_matches, inlier_mask, ...
 % inlier_mask should be 1xnum_matched (!!!) and contain, only for the
 %   matched keypoints (!!!), 0 if the match is an outlier, 1 otherwise.
 
-use_p3p = false;
+use_p3p = true;
 
 % Parameters form exercise 3.
 harris_patch_size = 9;
@@ -21,7 +21,7 @@ num_keypoints = 1000;
 
 if use_p3p
     num_iterations = 200;
-    pixel_tolerance = 10;
+    pixel_tolerance = 3;
     k = 3;
 else
     num_iterations = 2000;
@@ -46,11 +46,8 @@ corresponding_landmarks = p_W_landmarks(:, corresponding_matches);
 
 % Initialize RANSAC.
 inlier_mask = zeros(1, size(matched_query_keypoints, 2));
-matched_query_keypoints = flipud(matched_query_keypoints);
 max_num_inliers_history = zeros(1, num_iterations);
 max_num_inliers = 0;
-% Replace the following with the path to your keypoint matcher code:
-addpath('../../00_camera_projection/code');
 
 % RANSAC
 for i = 1:num_iterations
@@ -75,7 +72,7 @@ for i = 1:num_iterations
         end
     else
         M_C_W_guess = estimatePoseDLT(...
-            keypoint_sample', landmark_sample', K);
+            keypoint_sample, landmark_sample, K);
         R_C_W_guess = M_C_W_guess(:, 1:3);
         t_C_W_guess = M_C_W_guess(:, end);
     end
@@ -102,7 +99,7 @@ for i = 1:num_iterations
         end
     end
     
-    if nnz(is_inlier) > max_num_inliers && nnz(is_inlier) >= 6
+    if nnz(is_inlier) > max_num_inliers
         max_num_inliers = nnz(is_inlier);        
         inlier_mask = is_inlier;
     end
@@ -115,8 +112,8 @@ if max_num_inliers == 0
     t_C_W = [];
 else
     M_C_W = estimatePoseDLT(...
-        matched_query_keypoints(:, inlier_mask>0)', ...
-        corresponding_landmarks(:, inlier_mask>0)', K);
+        matched_query_keypoints(:, inlier_mask>0), ...
+        corresponding_landmarks(:, inlier_mask>0), K);
     R_C_W = M_C_W(:, 1:3);
     t_C_W = M_C_W(:, end);
 end
