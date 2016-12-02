@@ -67,19 +67,18 @@ else
     assert(false);
 end
 
-[R1, T1, repr_error, pt_cloud_kf, keypoints_kf, keypoints_r] = initializePointCloudMono(img0,img1,K);
+[R1, T1, repr_error, pt_cloud_kf, ~, keypoints_r] = initializePointCloudMono(img0,img1,K);
 
 % state 
 prev_state = struct('T_kf', eye(3,4), ...
                     'T_c', [R1 T1], ...
                     'pt_cloud_kf', pt_cloud_kf, ...
-                    'keypoints_kf', keypoints_kf, ...
                     'keypoints_c', keypoints_r, ...
                     'correspondence', 1 : size(keypoints_r, 2));
 %% Continuous operation
 range = (bootstrap_frames(2)+1):last_frame;
+prev_img = img1;
 for i = range
-    prev_img = img1;
     fprintf('\n\nProcessing frame %d\n=====================\n', i);
     if ds == 0
         next_image = imread([kitti_path '/00/image_0/' sprintf('%06d.png',i)]);
