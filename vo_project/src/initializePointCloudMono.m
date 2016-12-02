@@ -1,4 +1,4 @@
-function [R1, T1, repr_error, Point_Cloud] = initializePointCloudMono( img0, img1, K )
+function [R1, T1, repr_error, Point_Cloud, kp0_selected] = initializePointCloudMono( img0, img1, K )
 %INITIALIZEPOINTCLOUDSTEREO Determines pose of camera with img1 in frame of 
 % camera with img0. Also determines point cloud of features in left image 
 % in left image frame. 
@@ -13,7 +13,8 @@ function [R1, T1, repr_error, Point_Cloud] = initializePointCloudMono( img0, img
 %                      right image.
 %          Point_Cloud: [3xL] array of 3d points triangulated from features
 %                       in left image in left image frame.
-
+%          kp0_selected: [2xL] array of 2d key points in left image that are
+%                        selected by RANSAC
 
 % parameters to perform feature detecction and matching
 % TODO: optimize parameters to reduce reprojection error, pose error

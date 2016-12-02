@@ -74,6 +74,7 @@ end
 %% Continuous operation
 range = (bootstrap_frames(2)+1):last_frame;
 for i = range
+    prev_img = img0;
     fprintf('\n\nProcessing frame %d\n=====================\n', i);
     if ds == 0
         image = imread([kitti_path '/00/image_0/' sprintf('%06d.png',i)]);
@@ -87,10 +88,13 @@ for i = range
     else
         assert(false);
     end
+    %[ key_frame_key_points, Point_Cloud, R_next, T_next ] = ...
+    processFrame(image, prev_img, key_frame_key_points, Point_Cloud, K);
+    
+    R_list = [R_list, R_next];
+    T_list = [T_list, T_next];
     % Makes sure that plots refresh.    
     pause(0.01);
-    
-    
     
     prev_img = image;
 end
