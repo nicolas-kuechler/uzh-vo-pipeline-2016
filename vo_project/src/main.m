@@ -71,10 +71,11 @@ end
 
 % state 
 prev_state = struct('T_kf', eye(3,4), ...
-                    'pt_cloud_kf', Point_Cloud, ...
-                    'keypoints_kf', keypoints_kf, ...
                     'T_c', [R1 T1], ...
-                    'keypoints_c', keypoints_r);
+                    'pt_cloud_kf', pt_cloud_kf, ...
+                    'keypoints_kf', keypoints_kf, ...
+                    'keypoints_c', keypoints_r, ...
+                    'correspondence', 1 : size(keypoints_r, 2));
 %% Continuous operation
 range = (bootstrap_frames(2)+1):last_frame;
 for i = range
@@ -93,12 +94,12 @@ for i = range
         assert(false);
     end
     
-    [ curr_T, curr_state ] = processFrame(next_image, prev_img, prev_state, K);
+    [ next_T, next_state ] = processFrame(next_image, prev_img, prev_state, K);
 
     % Makes sure that plots refresh.    
     pause(0.01);
     
-    Ts = [Ts, curr_T];
-    prev_img = curr_image;
-    prev_state = curr_state;
+    Ts = [Ts, next_T];
+    prev_img = next_image;
+    prev_state = next_state;
 end
