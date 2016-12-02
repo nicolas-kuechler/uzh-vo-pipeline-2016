@@ -25,10 +25,9 @@ function [ next_T_c, next_state ] = processFrame(next_img, prev_img, prev_state,
 
 T_kf = prev_state.T_kf; % pose of last key frame
 pt_cloud_kf = prev_state.pt_cloud_kf; % pt_cloud w. r. t. last key frame
-keypoints_kf = prev_state.keypoints_kf; % keypoints corresponding to pt_cloud_kf in key frame
 T_c = prev_state.T_c; % current pose
 keypoints_c = prev_state.keypoints_c; % current keypoints (tracked)
-correspondence_c = prev_state.correspondence;
+correspondence_c = prev_state.correspondence; % correspondence (entry i is j. ith tracked keypoint <-> jth 3D point)
 
 % create pointTracker
 pointTracker = vision.PointTracker;
@@ -36,11 +35,11 @@ pointTracker = vision.PointTracker;
 % initialize point tracker
 initialize(pointTracker, keypoints_c', prev_img);
 
-% track point to next frame
+% track points to next frame
 [next_keypoints, point_validity] = step(pointTracker, next_img);
 next_keypoints = next_keypoints';
 
-assert(size(keypoints_c, 2) == size(next_keypoints,2));
+assert(size(keypoints_c, 2) == size(next_keypoints, 2));
 
 % remove points that were not reliably tracked from keyframe correspondence
 % and from tracked keypoints
@@ -64,7 +63,6 @@ next_correspondence_c = next_correspondence_c(:, inlier_mask);
 % write all variables in new state
 next_state = struct('T_kf', T_kf, ...
                     'pt_cloud_kf', pt_cloud_kf, ...
-                    'keypoints_kf', keypoints_kf, ...
                     'T_c', next_T_c, ...
                     'keypoints_c', next_keypoints_c,...
                     'correspondence', next_correspondence_c);

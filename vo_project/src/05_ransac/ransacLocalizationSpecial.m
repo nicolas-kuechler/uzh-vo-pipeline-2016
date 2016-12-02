@@ -1,12 +1,13 @@
 function [R_C_W, t_C_W, inlier_mask] = ...
-    ransacLocalizationSpecial(matched_query_keypoints, all_matches, p_W_landmarks, K)
+    ransacLocalizationSpecial(query_keypoints, all_matches, p_W_landmarks, K)
 % query_keypoints should be 2x1000
 % all_matches should be 1x1000 and correspond to the output from the
 %   matchDescriptors() function from exercise 3.
 % inlier_mask should be 1xnum_matched (!!!) and contain, only for the
 %   matched keypoints (!!!), 0 if the match is an outlier, 1 otherwise.
+assert(size(query_keypoints, 2 ) == size(all_matches,2));
 
-use_p3p = true;
+use_p3p = false;
 
 if use_p3p
     num_iterations = 200;
@@ -14,21 +15,21 @@ if use_p3p
     k = 3;
 else
     num_iterations = 2000;
-    pixel_tolerance = 10;
+    pixel_tolerance = 5;
     k = 6;
 end
 
 corresponding_landmarks = p_W_landmarks(:, all_matches);
 
 % Initialize RANSAC.
-inlier_mask = zeros(1, size(matched_query_keypoints, 2));
+inlier_mask = zeros(1, size(query_keypoints, 2));
 max_num_inliers = 0;
 
 % RANSAC
 for i = 1:num_iterations
     [landmark_sample, idx] = datasample(...
         corresponding_landmarks, k, 2, 'Replace', false);
-    keypoint_sample = matched_query_keypoints(:, idx);
+    keypoint_sample = query_keypoints(:, idx);
     
     if use_p3p
         normalized_bearings = K\[keypoint_sample; ones(1, 3)];
@@ -57,7 +58,7 @@ for i = 1:num_iterations
         (R_C_W_guess(:,:,1) * corresponding_landmarks) + ...
         repmat(t_C_W_guess(:,:,1), ...
         [1 size(corresponding_landmarks, 2)]), K);
-    difference = matched_query_keypoints - projected_points;
+    difference = query_keypoints - projected_points;
     errors = sum(difference.^2, 1);
     is_inlier = errors < pixel_tolerance^2;
     
@@ -66,7 +67,7 @@ for i = 1:num_iterations
             (R_C_W_guess(:,:,2) * corresponding_landmarks) + ...
             repmat(t_C_W_guess(:,:,2), ...
             [1 size(corresponding_landmarks, 2)]), K);
-        difference = matched_query_keypoints - projected_points;
+        difference = query_keypoints - projected_points;
         errors = sum(difference.^2, 1);
         alternative_is_inlier = errors < pixel_tolerance^2;
         if nnz(alternative_is_inlier) > nnz(is_inlier)
@@ -85,7 +86,7 @@ if max_num_inliers == 0
     t_C_W = [];
 else
     M_C_W = estimatePoseDLT(...
-        matched_query_keypoints(:, inlier_mask>0), ...
+        query_keypoints(:, inlier_mask>0), ...
         corresponding_landmarks(:, inlier_mask>0), K);
     R_C_W = M_C_W(:, 1:3);
     t_C_W = M_C_W(:, end);
