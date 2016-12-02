@@ -1,5 +1,5 @@
 function [R1, T1, repr_error, Point_Cloud, kp0_selected, kp1_selected] = initializePointCloudMono( img0, img1, K )
-%INITIALIZEPOINTCLOUDSTEREO Determines pose of camera with img1 in frame of 
+%INITIALIZEPOINTCLOUDMONO Determines pose of camera with img1 in frame of 
 % camera with img0. Also determines point cloud of features in left image 
 % in left image frame. 
 
