@@ -11,7 +11,7 @@ initialize(pointTracker, kp', prev_img);
 [next_kp, point_validity] = step(pointTracker, next_img);
 next_kp = next_kp';
 
-assert(size(matched_kp, 2) == size(next_keypoints, 2));
+assert(size(kp, 2) == size(next_kp, 2));
 
 end
 
