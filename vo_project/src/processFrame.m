@@ -112,24 +112,44 @@ next_state = struct('pt_cloud', next_pt_cloud, ...
 %% DEBUG: (remove after testing)
 debug = true;
 if debug
-    figure;
     imshow(next_img);
     hold on;
-    % plot new keypoints
-    plot(next_keypoints_c(1,:), next_keypoints_c(2,:), 'rx', 'Linewidth', 2);
+    % plot new matched keypoints
+    plot(next_matched_kp(1,:), next_matched_kp(2,:), 'rx', 'Linewidth', 2);
     
-    % plot old keypoints
-    plot(matched_kp(1,:), matched_kp(2,:), 'yx', 'Linewidth', 2);
+    % plot old matched keypoints
+    plot(matched_kp(1,:), matched_kp(2,:), 'mv', 'Linewidth', 2);
     
-    % plot correspondences
+    % plot correspondences between old and new matched keypoints
     quiver(matched_kp(1,:),matched_kp(2,:),...
-        -matched_kp(1,:)+next_keypoints(1,:), -matched_kp(2,:)+next_keypoints(2,:), 0);
+        -matched_kp(1,:)+next_matched_kp(1,:), -matched_kp(2,:)+next_matched_kp(2,:), 0, 'm');
     
-    % plot reprojected
-    next_keypoints_reprojected = reprojectPoints(pt_cloud_kf, T_next, K);
+    % plot reprojected 3D points (should coincide with new_matched_kp)
+    next_keypoints_reprojected = reprojectPoints(next_pt_cloud, T_next, K);
     plot(next_keypoints_reprojected(1,:), next_keypoints_reprojected(2,:), ...
-        'bx', 'Linewidth', 2);
+        'ro', 'Linewidth', 2);
     
-    title('Next Image (Red matches: tracked inlier keypoints, blue matches: reprojected point cloud.');
+    % plot new candidate keypoints
+    plot(next_candidate_kp(1,:), next_candidate_kp(2,:), 'bx', 'Linewidth', 2);
+    
+    % plot previous candidate keypoints
+    plot(candidate_kp(1,:), candidate_kp(2,:), 'cv', 'Linewidth', 2);
+    
+    % plot correspondences between old and new candidate keypoints
+    quiver(candidate_kp(1,:),candidate_kp(2,:),...
+        -candidate_kp(1,:)+next_candidate_kp(1,:), -candidate_kp(2,:)+next_candidate_kp(2,:), 0, 'c');
+    
+    % plot track start of each candidate keypoints
+    plot(next_kp_track_start(1,:), next_kp_track_start(2,:), 'co', 'Linewidth', 2);
+    
+    % plot correspondences between track start and old candidate keypoints
+    quiver(next_kp_track_start(1,:),next_kp_track_start(2,:),...
+        -next_kp_track_start(1,:)+candidate_kp(1,:), -next_kp_track_start(2,:)+candidate_kp(2,:), 0, 'c');
+    
+    title(['Red x: current matched keypoints, Magenta v: previous matched keypoints,' ...
+           'Magenta o: reprojected point cloud, Blue x: current candidate keypoints,' ...
+           'Cyan v: previous candidate keypoints, Cyan o: track starts']);
+    
+    hold off;
 end
 
