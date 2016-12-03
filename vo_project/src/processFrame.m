@@ -84,13 +84,13 @@ else
     next_kp_track_start = kp_track_start(:, point_validity);
     next_kp_pose_start = kp_pose_start(:, point_validity);
 
-    loss = sum(1 - point_validity);
+    tracking_loss = sum(1 - point_validity);
 
     % try to triangulate points
     [new_pt_cloud, new_matched_kp, remain] = ...
         tryTriangulate(next_candidate_kp, next_kp_track_start, next_kp_pose_start, next_T, K);
     added_matched = sum(1 - remain); 
-    loss = loss + sum(1 - remain);
+    triangulation_loss = sum(1 - remain);
 
     % remove all candidate key points that were triangulated
     next_candidate_kp = next_candidate_kp(:, remain);
@@ -103,11 +103,11 @@ else
     next_pt_cloud = [pt_cloud, new_pt_cloud];
     next_matched_kp = [next_matched_kp, new_matched_kp];
     next_corr2d3d = [next_corr2d3d, num_old_pts + 1 : num_old_pts + num_new_pts];
-
+    
     % get new candidate keypoints
     harris_patch_size = 9;
     harris_kappa = 0.08;
-    num_keypoints = loss + 10; % TODO: tune
+    num_keypoints = triangulation_loss + tracking_loss + 200 - size(next_matched_kp,2); % TODO: tune
     nonmaximum_supression_radius = 8;
 
     scores = harris(next_img, harris_patch_size, harris_kappa);
@@ -151,9 +151,9 @@ if debug && ~isempty(candidate_kp)
 %     plot(next_keypoints_reprojected(1,:), next_keypoints_reprojected(2,:), ...
 %         'ro', 'Linewidth', 2);
     
-    % plot new candidate keypoints
-    plot(next_candidate_kp(1,:), next_candidate_kp(2,:), 'bx', 'Linewidth', 2);
-    
+%     % plot new candidate keypoints
+%     plot(next_candidate_kp(1,:), next_candidate_kp(2,:), 'bx', 'Linewidth', 2);
+%     
 %     % plot previous candidate keypoints
 %     plot(candidate_kp(1,:), candidate_kp(2,:), 'cv', 'Linewidth', 2);
     
@@ -167,7 +167,11 @@ if debug && ~isempty(candidate_kp)
 %     % plot correspondences between track start and old candidate keypoints
 %     quiver(next_kp_track_start(1,:),next_kp_track_start(2,:),...
 %         -next_kp_track_start(1,:)+candidate_kp(1,:), -next_kp_track_start(2,:)+candidate_kp(2,:), 0, 'c');
-    
+%
+%      % plot correspondences between track start and old candidate keypoints
+%      quiver(next_kp_track_start(1,:),next_kp_track_start(2,:),...
+%          -next_kp_track_start(1,:)+next_candidate_kp(1,:), -next_kp_track_start(2,:)+next_candidate_kp(2,:), 0, 'c');
+%     
     title(['Red x: current matched keypoints, Magenta v: previous matched keypoints,' ...
            'Magenta o: reprojected point cloud, Blue x: current candidate keypoints,' ...
            'Cyan v: previous candidate keypoints, Cyan o: track starts']);
@@ -176,7 +180,8 @@ if debug && ~isempty(candidate_kp)
     struct('Matched', size(next_matched_kp, 2), ...
           'Cloud', size(next_pt_cloud, 2), ...
           'Candidates', size(next_candidate_kp, 2), ...
-          'added', added_matched)
-    waitforbuttonpress;
+          'Candidates added', num_keypoints)
+    pause(0.01);
+    %waitforbuttonpress;
 end
 
