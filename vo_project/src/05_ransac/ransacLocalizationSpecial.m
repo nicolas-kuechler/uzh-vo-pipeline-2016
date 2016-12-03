@@ -1,4 +1,4 @@
-function [R_C_W, t_C_W, inlier_mask] = ...
+function [T, inlier_mask] = ...
     ransacLocalizationSpecial(query_keypoints, all_matches, p_W_landmarks, K)
 % query_keypoints should be 2x1000
 % all_matches should be 1x1000 and correspond to the output from the
@@ -96,5 +96,7 @@ elseif ~use_p3p
     t_C_W = M_C_W(:, end);
 end
 
+
+T = [R_C_W, t_C_W];
 end
 

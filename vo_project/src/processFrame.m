@@ -1,71 +1,113 @@
-function [ next_T_c, next_state ] = processFrame(next_img, prev_img, prev_state, K)
+function [ next_T, next_state ] = processFrame(next_img, prev_img, prev_state, K)
 %PROCESSFRAME Determines pose of camera with next_image in frame of 
 % camera with prev_img. Determine point_cloud <-> keypoint correspondence
 % with keypoints from next image and point cloud from prev img. 
 %
 % inputs: next_img: N x M key frame image of camera
 %         prev_img: N x M image of camera
-%         prev_keypoints: 2 x L array of keypoints in prev_img which are in 1 to 1 
-%                         correspondence with prev_point_cloud
-%         prev_point_cloud: 3 x L array of 3D points in frame of camera
-%                           with prev_img 
+%         prev_state: struct with the following fields:
+%                     pt_cloud: 3 x H array with 3D points that have been
+%                               generated so far.
+%                     matched_kp: 2 x L array with 2D key points in
+%                                 prev_img which have a corresponding 3D point in
+%                                 pt_cloud
+%                     corr2d3d: 1 x L array with entry i equal to j where 
+%                               ith matched keypoint <-> jth 3D point
+%                     candidate_kp: 2 x P array with 2D key points which
+%                                   have been tracked from some frame before
+%                                   but not matched with a 3D point
+%                     kp_track_start: 2 x P starting key point for each
+%                                     track
+%                     kp_pose_start: 12 x P starting pose for each key
+%                                    point 
+%                     
 %         K: calibration matrix of camera with next_img
 %
-% outputs: next_keypoints: keypoints that are matched between next_img and
-%                          prev_keypoints
-%          next_point_cloud: 3D points that are in 1 to 1 correspondence
+% outputs: next_state: state propagated to next time frame (same structure
+%                      as prev_state
+%          next_T: 3D points that are in 1 to 1 correspondence
 %                            with nex_keypoints and are in frame of camera 
 %                            with prev_img
 %          R_next: rotation of camera with next_img with respect to prev_img.
 %          T_next: translation of camera with next_img with respect to
 %                  prev_img.
+                
+pt_cloud = prev_state.pt_cloud; % pt_cloud w. r. t. last key frame
+matched_kp = prev_state.matched_kp; % keypoints (matched with pt_cloud)
+corr2d3d = prev_state.corr2d3d; % correspondence (entry i is j. ith matched keypoint <-> jth 3D point)
+candidate_kp = prev_state.candidate_kp;
+kp_track_start = prev_state.kp_track_start;
+kp_pose_start = prev_state.kp_pose_start;
 
-% TODO: correspondences are between pt_cloud_kf and keypoints_c (do not
-% remove point clouds, make surjections mapping matrix)
-
-T_kf = prev_state.T_kf; % pose of last key frame
-pt_cloud_kf = prev_state.pt_cloud_kf; % pt_cloud w. r. t. last key frame
-T_c = prev_state.T_c; % current pose
-keypoints_c = prev_state.keypoints_c; % previous keypoints (tracked)
-correspondence_c = prev_state.correspondence; % correspondence (entry i is j. ith tracked keypoint <-> jth 3D point)
-
-% create pointTracker
-pointTracker = vision.PointTracker;
-
-% initialize point tracker
-initialize(pointTracker, keypoints_c', prev_img);
-
-% track points to next frame
-[next_keypoints, point_validity] = step(pointTracker, next_img);
-next_keypoints = next_keypoints';
-
-assert(size(keypoints_c, 2) == size(next_keypoints, 2));
+%%%%%% Step 1: State Propagation %%%%%%
+[next_matched_kp, point_validity] = propagateState(matched_kp, prev_img, next_img);
 
 % remove points that were not reliably tracked from keyframe correspondence
 % and from tracked keypoints
-next_keypoints_c = next_keypoints(:, point_validity);
-next_correspondence_c = correspondence_c(:, point_validity);
+next_matched_kp = next_matched_kp(:, point_validity);
+next_corr2d3d = corr2d3d(:, point_validity);
 
-assert(size(next_correspondence_c, 2) == size(next_keypoints_c,2));
+assert(size(next_corr2d3d, 2) == size(next_matched_kp,2));
 
+%%%%%% Step 2: Pose Estimation %%%%%%
 % with new correspondence next_point_cloud <-> next_keypoints determine new
 % pose with RANSAC and P3P
-[R_next, T_next, inlier_mask] = ...
-    ransacLocalizationSpecial(next_keypoints_c, next_correspondence_c, pt_cloud_kf, K);
-
-% update current pose
-next_T_c = [R_next T_next];
+[next_T, inlier_mask] = ...
+    ransacLocalizationSpecial(next_matched_kp, next_corr2d3d, pt_cloud, K);
 
 % remove all outliers from ransac
-next_keypoints_c = next_keypoints_c(:, inlier_mask);
-next_correspondence_c = next_correspondence_c(:, inlier_mask);
+next_matched_kp = next_matched_kp(:, inlier_mask);
+next_corr2d3d = next_corr2d3d(:, inlier_mask);
 
-% write all variables in new state
-next_state = struct('T_kf', T_kf, ...
-                    'pt_cloud_kf', pt_cloud_kf, ...
-                    'T_c', next_T_c, ...
-                    'keypoints_c', next_keypoints_c,...
-                    'correspondence', next_correspondence_c);
+%%%%%% Step 3: Triangulating new landmarks %%%%%%
+[next_candidate_kp, point_validity] = propagateState(candidate_kp, prev_img, next_img);
+
+% remove points which could not be tracked
+next_candidate_kp = next_candidate_kp(:, point_validity);
+next_kp_track_start = kp_track_start(:, point_validity);
+next_kp_pose_start = kp_pose_start(:, point_validity);
+
+loss = sum(1 - point_validity);
+
+% try to triangulate points
+[new_pt_cloud, new_matched_kp, remain] = ...
+    tryTriangulate(next_candidate_kp, next_kp_track_start, next_kp_pose_start, next_T, K);
+    
+loss = loss + sum(1 - remain);
+
+% remove all candidate key points that were triangulated
+next_candidate_kp = next_candidate_kp(:, remain);
+next_kp_track_start = kp_track_start(:, remain);
+next_kp_pose_start = kp_pose_start(:, remain);
+
+% add new 3d points and matched key points
+num_new_pts = size(new_pt_cloud, 2);
+num_old_pts = size(pt_cloud, 2);
+next_pt_cloud = [pt_cloud, new_pt_cloud];
+next_matched_kp = [next_matched_kp, new_matched_kp];
+next_corr2d3d = [next_corr2d3d, num_old_pts + 1 : num_old_pts + num_new_pts];
+
+% get new candidate keypoints
+harris_patch_size = 9;
+harris_kappa = 0.08;
+num_keypoints = loss + 10; % TODO: tune
+nonmaximum_supression_radius = 8;
+
+scores = harris(next_img, harris_patch_size, harris_kappa);
+new_candidate_kp = selectKeypoints(scores, num_keypoints, nonmaximum_supression_radius);
+
+% add them to existing candidate keypoints
+next_candidate_kp = [next_candidate_kp, new_candidate_kp];
+next_kp_track_start = [next_kp_track_start, new_candidate_kp];
+next_kp_pose_start = [next_kp_pose_start, repmat(next_T(:), 1, num_keypoints)];
+
+% write all variables in new state                
+next_state = struct('pt_cloud', next_pt_cloud, ...
+                    'matched_kp', next_matched_kp, ...
+                    'corr2d3d', next_corr2d3d, ...
+                    'candidate_kp', next_candidate_kp, ...
+                    'kp_track_start', next_kp_track_start, ...
+                    'kp_pose_start', next_kp_pose_start);
 
 %% DEBUG: (remove after testing)
 debug = true;
@@ -77,14 +119,14 @@ if debug
     plot(next_keypoints_c(1,:), next_keypoints_c(2,:), 'rx', 'Linewidth', 2);
     
     % plot old keypoints
-    plot(keypoints_c(1,:), keypoints_c(2,:), 'yx', 'Linewidth', 2);
+    plot(matched_kp(1,:), matched_kp(2,:), 'yx', 'Linewidth', 2);
     
     % plot correspondences
-    quiver(keypoints_c(1,:),keypoints_c(2,:),...
-        -keypoints_c(1,:)+next_keypoints(1,:), -keypoints_c(2,:)+next_keypoints(2,:), 0);
+    quiver(matched_kp(1,:),matched_kp(2,:),...
+        -matched_kp(1,:)+next_keypoints(1,:), -matched_kp(2,:)+next_keypoints(2,:), 0);
     
     % plot reprojected
-    next_keypoints_reprojected = reprojectPoints(pt_cloud_kf, next_T_c, K);
+    next_keypoints_reprojected = reprojectPoints(pt_cloud_kf, T_next, K);
     plot(next_keypoints_reprojected(1,:), next_keypoints_reprojected(2,:), ...
         'bx', 'Linewidth', 2);
     
