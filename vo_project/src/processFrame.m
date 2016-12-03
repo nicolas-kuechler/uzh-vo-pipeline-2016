@@ -94,8 +94,8 @@ else
 
     % remove all candidate key points that were triangulated
     next_candidate_kp = next_candidate_kp(:, remain);
-    next_kp_track_start = kp_track_start(:, remain);
-    next_kp_pose_start = kp_pose_start(:, remain);
+    next_kp_track_start = next_kp_track_start(:, remain);
+    next_kp_pose_start = next_kp_pose_start(:, remain);
 
     % add new 3d points and matched key points
     num_new_pts = size(new_pt_cloud, 2);
@@ -139,31 +139,31 @@ if debug && ~isempty(candidate_kp)
     % plot new matched keypoints
     plot(next_matched_kp(1,:), next_matched_kp(2,:), 'rx', 'Linewidth', 2);
     
-    % plot old matched keypoints
-    plot(matched_kp(1,:), matched_kp(2,:), 'mv', 'Linewidth', 2);
-    
-    % plot correspondences between old and new matched keypoints
-    quiver(matched_kp(1,:),matched_kp(2,:),...
-        -matched_kp(1,:)+prop_matched_kp(1,:), -matched_kp(2,:)+prop_matched_kp(2,:), 0, 'm');
-    
-    % plot reprojected 3D points (should coincide with new_matched_kp)
-    next_keypoints_reprojected = reprojectPoints(next_pt_cloud, next_T, K);
-    plot(next_keypoints_reprojected(1,:), next_keypoints_reprojected(2,:), ...
-        'ro', 'Linewidth', 2);
+%     % plot old matched keypoints
+%     plot(matched_kp(1,:), matched_kp(2,:), 'mv', 'Linewidth', 2);
+%     
+%     % plot correspondences between old and new matched keypoints
+%     quiver(matched_kp(1,:),matched_kp(2,:),...
+%         -matched_kp(1,:)+prop_matched_kp(1,:), -matched_kp(2,:)+prop_matched_kp(2,:), 0, 'm');
+%     
+%     % plot reprojected 3D points (should coincide with new_matched_kp)
+%     next_keypoints_reprojected = reprojectPoints(next_pt_cloud, next_T, K);
+%     plot(next_keypoints_reprojected(1,:), next_keypoints_reprojected(2,:), ...
+%         'ro', 'Linewidth', 2);
     
     % plot new candidate keypoints
     plot(next_candidate_kp(1,:), next_candidate_kp(2,:), 'bx', 'Linewidth', 2);
     
-    % plot previous candidate keypoints
-    plot(candidate_kp(1,:), candidate_kp(2,:), 'cv', 'Linewidth', 2);
+%     % plot previous candidate keypoints
+%     plot(candidate_kp(1,:), candidate_kp(2,:), 'cv', 'Linewidth', 2);
     
-    % plot correspondences between old and new candidate keypoints
-    quiver(candidate_kp(1,:),candidate_kp(2,:),...
-        -candidate_kp(1,:)+prop_candidate_kp(1,:), -candidate_kp(2,:)+prop_candidate_kp(2,:), 0, 'c');
-    
-    % plot track start of each candidate keypoints
-    plot(next_kp_track_start(1,:), next_kp_track_start(2,:), 'co', 'Linewidth', 2);
-    
+%     % plot correspondences between old and new candidate keypoints
+%     quiver(candidate_kp(1,:),candidate_kp(2,:),...
+%         -candidate_kp(1,:)+prop_candidate_kp(1,:), -candidate_kp(2,:)+prop_candidate_kp(2,:), 0, 'c');
+%     
+%     % plot track start of each candidate keypoints
+%     plot(next_kp_track_start(1,:), next_kp_track_start(2,:), 'go', 'Linewidth', 2);
+%     
 %     % plot correspondences between track start and old candidate keypoints
 %     quiver(next_kp_track_start(1,:),next_kp_track_start(2,:),...
 %         -next_kp_track_start(1,:)+candidate_kp(1,:), -next_kp_track_start(2,:)+candidate_kp(2,:), 0, 'c');
