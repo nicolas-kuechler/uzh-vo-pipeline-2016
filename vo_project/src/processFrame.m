@@ -34,7 +34,6 @@ function [ curr_T, curr_state ] = processFrame(curr_img, prev_img, prev_state, K
                 
 pt_cloud = prev_state.pt_cloud; % pt_cloud w. r. t. last key frame
 curr_matched_kp = prev_state.matched_kp; % keypoints (matched with pt_cloud)
-curr_corr2d3d = prev_state.corr2d3d; % correspondence (entry i is j. ith matched keypoint <-> jth 3D point)
 candidate_kp = prev_state.candidate_kp;
 kp_track_start = prev_state.kp_track_start;
 kp_pose_start = prev_state.kp_pose_start;
@@ -45,23 +44,16 @@ kp_pose_start = prev_state.kp_pose_start;
 % remove points that were not reliably tracked from keyframe correspondence
 % and from tracked keypoints
 curr_matched_kp = curr_matched_kp(:, point_validity);
-curr_corr2d3d = curr_corr2d3d(:, point_validity);
-
-assert(size(curr_corr2d3d, 2) == size(curr_matched_kp,2));
+pt_cloud = pt_cloud(:,point_validity);
 
 %%%%%% Step 2: Pose Estimation %%%%%%
 % with new correspondence next_point_cloud <-> next_keypoints determine new
 % pose with RANSAC and P3P
-[curr_T, inlier_mask] = ...
-    ransacLocalizationSpecial(curr_matched_kp, curr_corr2d3d, pt_cloud, K);
+[curr_T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K);
 
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
-curr_corr2d3d = curr_corr2d3d(:, inlier_mask);
-
-%%%%%% Step 3: Triangulating new landmarks %%%%%%
-% generate candidate points for first iteration
-
+pt_cloud = pt_cloud(:, inlier_mask);
 
 %%% Step 3: Triangulating new landmarks
 loss = 0;
@@ -90,12 +82,8 @@ if ~isempty(candidate_kp)
     kp_pose_start = kp_pose_start(:, remain);
 
     % add new 3d points and matched key points
-    num_new_pts = size(new_pt_cloud, 2);
-    num_old_pts = size(pt_cloud, 2);
     pt_cloud = [pt_cloud, new_pt_cloud];
     curr_matched_kp = [curr_matched_kp, new_matched_kp];
-    curr_corr2d3d = [curr_corr2d3d, num_old_pts + 1 : num_old_pts + num_new_pts];
-    
     
     loss = triangulation_loss + tracking_loss;
 end
@@ -119,14 +107,12 @@ end
 %% Write all variables to new state            
 curr_state = struct('pt_cloud', pt_cloud, ...
                     'matched_kp', curr_matched_kp, ...
-                    'corr2d3d', curr_corr2d3d, ...
                     'candidate_kp', candidate_kp, ...
                     'kp_track_start', kp_track_start, ...
                     'kp_pose_start', kp_pose_start);
                 
 assert(size(candidate_kp, 2) == size(kp_track_start, 2));
 assert(size(candidate_kp, 2) == size(kp_pose_start, 2));
-assert(size(curr_corr2d3d, 2) == size(curr_matched_kp, 2));
 
 %% DEBUG: (remove after testing)
 debug = true;
