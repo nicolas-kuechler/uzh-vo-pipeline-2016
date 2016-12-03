@@ -1,4 +1,4 @@
-function [R1, T1, repr_error, Point_Cloud, kp0_selected, kp1_selected] = initializePointCloudMono( img0, img1, K )
+function [R1, T1, repr_error, Point_Cloud, kp0_selected, kp1_selected] = initializePointCloudMono( img0, img1, K , params)
 %INITIALIZEPOINTCLOUDMONO Determines pose of camera with img1 in frame of 
 % camera with img0. Also determines point cloud of features in left image 
 % in left image frame. 
@@ -18,29 +18,19 @@ function [R1, T1, repr_error, Point_Cloud, kp0_selected, kp1_selected] = initial
 %          kp1_selected: [2xL] array of 2d key points in right image that are
 %                        selected by RANSAC
 
-% parameters to perform feature detecction and matching
-% TODO: optimize parameters to reduce reprojection error, pose error
-% (compared to ground truth)
-harris_patch_size = 9;
-harris_kappa = 0.08;
-num_keypoints = 500;
-nonmaximum_supression_radius = 8;
-descriptor_radius = 9;
-match_lambda = 5;
+% extract features and descriptors from left image
+scores0 = harris(img0, params.harris_patch_size, params.harris_kappa);
+kp0 = selectKeypoints(scores0, params.num_keypoints, params.nonmaximum_supression_radius);
+desc0 = describeKeypoints(img0, kp0, params.descriptor_radius);
 
 % extract features and descriptors from left image
-scores0 = harris(img0, harris_patch_size, harris_kappa);
-kp0 = selectKeypoints(scores0, num_keypoints, nonmaximum_supression_radius);
-desc0 = describeKeypoints(img0, kp0, descriptor_radius);
-
-% extract features and descriptors from left image
-scores1 = harris(img1, harris_patch_size, harris_kappa);
-kp1 = selectKeypoints(scores1, num_keypoints, nonmaximum_supression_radius);
-desc1 = describeKeypoints(img1, kp1, descriptor_radius);
+scores1 = harris(img1, params.harris_patch_size, params.harris_kappa);
+kp1 = selectKeypoints(scores1, params.num_keypoints, params.nonmaximum_supression_radius);
+desc1 = describeKeypoints(img1, kp1, params.descriptor_radius);
 
 % match key points from left (database) to right image (query)
 % and remove unmatched points
-matches = matchDescriptors(desc1, desc0, match_lambda);
+matches = matchDescriptors(desc1, desc0, params.match_lambda);
 kp1_matched = kp1(:, matches ~= 0);
 kp0_matched = kp0(:, matches(matches ~= 0));
 

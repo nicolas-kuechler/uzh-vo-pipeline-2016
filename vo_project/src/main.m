@@ -44,7 +44,8 @@ end
 
 %% Bootstrap
 % need to set bootstrap_frames
-bootstrap_frames = [000001 000003];
+bootstrap_frames = [000001 000003];           
+                
 
 if ds == 0
     img0 = imread([kitti_path '/00/image_0/' ...
@@ -67,7 +68,18 @@ else
     assert(false);
 end
 
-[R1, T1, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K);
+% Initialize Parameters --> TODO Maybe different tuning for each dataset
+% TODO: optimize parameters to reduce reprojection error, pose error
+% (compared to ground truth)
+params = struct(...
+    'harris_patch_size', 9, ...
+    'harris_kappa', 0.08, ...
+    'num_keypoints', 500, ...
+    'nonmaximum_supression_radius', 8, ...
+    'descriptor_radius', 9,...
+    'match_lambda', 5);
+
+[R1, T1, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
 % state 
 prev_state = struct('pt_cloud', pt_cloud, ...
@@ -95,7 +107,7 @@ for i = range
         assert(false);
     end
     
-    [ next_T, next_state ] = processFrame(next_image, prev_img, prev_state, K);
+    [ next_T, next_state ] = processFrame(next_image, prev_img, prev_state, K, params);
 
     % Makes sure that plots refresh.    
     pause(0.01);
