@@ -11,10 +11,10 @@ function M = estimatePoseDLT(p, P, K)
 %    frame to the camera frame
 
 % Convert 2D points to normalized coordinates
-p_normalized = (K \ [p ;ones(1,length(p))])';
+p_normalized = (K \ [p ;ones(1,size(p,2))])';
 
 % Build the measurement matrix Q
-num_corners = length(p_normalized);
+num_corners = size(p_normalized,1);
 Q = zeros(2*num_corners, 12);
 
 for i=1:num_corners
