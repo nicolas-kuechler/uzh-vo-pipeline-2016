@@ -3,16 +3,14 @@ function [ curr_T, curr_state ] = processFrame(curr_img, prev_img, prev_state, K
 % camera with prev_img. Determine point_cloud <-> keypoint correspondence
 % with keypoints from next image and point cloud from prev img. 
 %
-% inputs: next_img: N x M key frame image of camera
+% inputs: curr_img: N x M key frame image of camera
 %         prev_img: N x M image of camera
 %         prev_state: struct with the following fields:
-%                     pt_cloud: 3 x H array with 3D points that have been
+%                     pt_cloud: 3 x L array with 3D points that have been
 %                               generated so far.
 %                     matched_kp: 2 x L array with 2D key points in
 %                                 prev_img which have a corresponding 3D point in
 %                                 pt_cloud
-%                     corr2d3d: 1 x L array with entry i equal to j where 
-%                               ith matched keypoint <-> jth 3D point
 %                     candidate_kp: 2 x P array with 2D key points which
 %                                   have been tracked from some frame before
 %                                   but not matched with a 3D point
@@ -21,12 +19,12 @@ function [ curr_T, curr_state ] = processFrame(curr_img, prev_img, prev_state, K
 %                     kp_pose_start: 12 x P starting pose for each key
 %                                    point 
 %                     
-%         K: calibration matrix of camera with next_img
+%         K: calibration matrix of camera with curr_img
 %
-% outputs: next_state: state propagated to next time frame (same structure
+% outputs: curr_state: state propagated to current time frame (same structure
 %                      as prev_state
-%          next_T: 3D points that are in 1 to 1 correspondence
-%                            with nex_keypoints and are in frame of camera 
+%          curr_T: 3D points that are in 1 to 1 correspondence
+%                            with curr_keypoints and are in frame of camera 
 %                            with prev_img
 %          R_next: rotation of camera with next_img with respect to prev_img.
 %          T_next: translation of camera with next_img with respect to
@@ -38,24 +36,22 @@ candidate_kp = prev_state.candidate_kp;
 kp_track_start = prev_state.kp_track_start;
 kp_pose_start = prev_state.kp_pose_start;
 
-%%%%%% Step 1: State Propagation %%%%%%
+%% Step 1: State Propagation
 [curr_matched_kp, point_validity] = propagateState(curr_matched_kp, prev_img, curr_img);
 
-% remove points that were not reliably tracked from keyframe correspondence
-% and from tracked keypoints
+% remove lost points
 curr_matched_kp = curr_matched_kp(:, point_validity);
 pt_cloud = pt_cloud(:,point_validity);
 
-%%%%%% Step 2: Pose Estimation %%%%%%
-% with new correspondence next_point_cloud <-> next_keypoints determine new
-% pose with RANSAC and P3P
+%% Step 2: Pose Estimation
+% with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
 [curr_T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K);
 
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
 pt_cloud = pt_cloud(:, inlier_mask);
 
-%%% Step 3: Triangulating new landmarks
+%% Step 3: Triangulating new landmarks
 loss = 0;
 
 if ~isempty(candidate_kp)
@@ -67,9 +63,8 @@ if ~isempty(candidate_kp)
     candidate_kp = candidate_kp(:, point_validity);
     kp_track_start = kp_track_start(:, point_validity);
     kp_pose_start = kp_pose_start(:, point_validity);
-
     tracking_loss = sum(1 - point_validity);
-
+    
     % Try to triangulate points (with triangulation check if possible)
     [new_pt_cloud, new_matched_kp, remain] = ...
         tryTriangulate(candidate_kp, kp_track_start, kp_pose_start, curr_T, K);
@@ -165,6 +160,6 @@ if debug && ~isempty(candidate_kp)
           'Candidates', size(candidate_kp, 2), ...
           'Candidates_added', num_keypoints)
     pause(0.01);
-%    waitforbuttonpress;
+   % waitforbuttonpress;
 end
 

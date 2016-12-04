@@ -107,7 +107,7 @@ for i = range
         assert(false);
     end
     
-    [ next_T, next_state ] = processFrame(next_image, prev_img, prev_state, K, params);
+    [next_T, next_state ] = processFrame(next_image, prev_img, prev_state, K, params);
 
     % Makes sure that plots refresh.    
     pause(0.01);
