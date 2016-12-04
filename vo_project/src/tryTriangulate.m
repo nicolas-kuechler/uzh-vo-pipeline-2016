@@ -23,7 +23,7 @@ for i = 1 : num_kp
         if new_3d_pt(3) > 0
             cloud = [cloud, new_3d_pt];
             matched_kp = [matched_kp, candidate_kp(:, i)];
-            remain(i) = false;
         end
+        remain(i) = false;    
     end
 end
