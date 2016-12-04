@@ -134,10 +134,12 @@ assert(size(next_corr2d3d, 2) == size(next_matched_kp, 2));
 %% DEBUG: (remove after testing)
 debug = true;
 if debug && ~isempty(candidate_kp)
+    subplot(2,1,2);
     imshow(next_img);
     hold on;
     % plot new matched keypoints
-    plot(next_matched_kp(1,:), next_matched_kp(2,:), 'rx', 'Linewidth', 2);
+    
+    plot( next_matched_kp(1,:), next_matched_kp(2,:), 'rx', 'Linewidth', 2);
     
 %     % plot old matched keypoints
 %     plot(matched_kp(1,:), matched_kp(2,:), 'mv', 'Linewidth', 2);
@@ -146,10 +148,10 @@ if debug && ~isempty(candidate_kp)
 %     quiver(matched_kp(1,:),matched_kp(2,:),...
 %         -matched_kp(1,:)+prop_matched_kp(1,:), -matched_kp(2,:)+prop_matched_kp(2,:), 0, 'm');
 %     
-%     % plot reprojected 3D points (should coincide with new_matched_kp)
-%     next_keypoints_reprojected = reprojectPoints(next_pt_cloud, next_T, K);
-%     plot(next_keypoints_reprojected(1,:), next_keypoints_reprojected(2,:), ...
-%         'ro', 'Linewidth', 2);
+    % plot reprojected 3D points (should coincide with new_matched_kp)
+    next_keypoints_reprojected = reprojectPoints(next_pt_cloud, next_T, K);
+    plot(next_keypoints_reprojected(1,:), next_keypoints_reprojected(2,:), ...
+        'bo', 'Linewidth', 2);
     
 %     % plot new candidate keypoints
 %     plot(next_candidate_kp(1,:), next_candidate_kp(2,:), 'bx', 'Linewidth', 2);

@@ -98,9 +98,13 @@ for i = range
     [ next_T, next_state ] = processFrame(next_image, prev_img, prev_state, K);
 
     % Makes sure that plots refresh.    
-    pause(0.01);
     
-    Ts = [Ts, next_T];
+    
+    Ts = [Ts, next_T(:, 4)];
+    subplot(2,1,1);
+    plot(-Ts(1,:), -Ts(3,:), ground_truth(1:i,1), ground_truth(1:i,2));
     prev_img = next_image;
     prev_state = next_state;
+    pause(0.01);
+    waitforbuttonpress;
 end
