@@ -56,8 +56,10 @@ for i = 1:num_iterations
     end
     
     % Count inliers:
-        projected_points = reprojectPoints(corresponding_landmarks, ...
-            [R_C_W_guess(:,:,1) t_C_W_guess(:,:,1)], K);
+    projected_points = projectPoints(...
+        (R_C_W_guess(:,:,1) * corresponding_landmarks) + ...
+        repmat(t_C_W_guess(:,:,1), ...
+        [1 size(corresponding_landmarks, 2)]), K);
     difference = query_keypoints - projected_points;
     errors = sum(difference.^2, 1);
     is_inlier = errors < pixel_tolerance^2;
@@ -80,8 +82,10 @@ for i = 1:num_iterations
     if nnz(is_inlier) > max_num_inliers
         max_num_inliers = nnz(is_inlier);        
         inlier_mask = is_inlier;
-        R_C_W = R_C_W_guess(:,:,alt);
-        t_C_W = t_C_W_guess(:,:,alt);
+        if use_p3p
+            R_C_W = R_C_W_guess(:,:,alt);
+            t_C_W = t_C_W_guess(:,:,alt);
+        end
     end
 end
 
