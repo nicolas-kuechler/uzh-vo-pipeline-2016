@@ -1,6 +1,6 @@
 function [cloud, matched_kp, remain] = ...
     tryTriangulate(candidate_kp, kp_track_start, kp_pose_start, T, K)
-threshold = 10;
+threshold = 3;
 num_kp = size(candidate_kp, 2);
 cloud = [];
 matched_kp = [];
