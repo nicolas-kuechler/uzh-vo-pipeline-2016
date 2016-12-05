@@ -8,7 +8,7 @@ function [T, inlier_mask] = ...
 assert(size(query_keypoints, 2) == size(p_W_landmarks, 2));
 
 num_iterations = 200;
-pixel_tolerance = 3;
+pixel_tolerance = 10;
 k = 3;
 
 % Initialize RANSAC.

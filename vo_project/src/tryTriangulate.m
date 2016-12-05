@@ -1,4 +1,4 @@
-function [cloud, matched_kp, remain] = ...
+function [cloud, matched_kp, remain, maxAngle] = ...
     tryTriangulate(candidate_kp, kp_track_start, kp_pose_start, T, K)
 threshold = 3;
 num_kp = size(candidate_kp, 2);
@@ -11,7 +11,7 @@ candidate_kp_bearings = K \ [candidate_kp; ones(1, num_kp)];
 for i = 1 : num_kp
     T_i = reshape(kp_pose_start(:,i), 3, 4);
     u = K \ [kp_track_start(:, i); 1];
-    u = T(:,1:3) * T_i(:, 1:3)' * u;
+    u = T(:,1:3)' * T_i(:, 1:3) * u;
 
     v = candidate_kp_bearings(:, i);
     
@@ -30,5 +30,5 @@ for i = 1 : num_kp
     end
     
 end
-maxTheta = max(t)
+maxAngle = max(t);
 end

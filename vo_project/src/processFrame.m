@@ -66,7 +66,7 @@ if ~isempty(candidate_kp)
     tracking_loss = sum(1 - point_validity);
     
     % Try to triangulate points (with triangulation check if possible)
-    [new_pt_cloud, new_matched_kp, remain] = ...
+    [new_pt_cloud, new_matched_kp, remain, maxAngle] = ...
         tryTriangulate(candidate_kp, kp_track_start, kp_pose_start, curr_T, K);
     triangulation_loss = sum(1 - remain);
     
@@ -91,6 +91,7 @@ end
         num_keypoints = 100;
         tracking_loss = 0;
         triangulation_loss = 0;
+        maxAngle = 0;
     else
         num_keypoints =  loss; % TODO Tune
     end
@@ -168,7 +169,8 @@ if debug && ~isempty(candidate_kp)
           'Candidates', size(candidate_kp, 2), ...
           'Candidates_added', num_keypoints, ...
           'Tracking_loss', tracking_loss, ...
-          'Triangulation_loss', triangulation_loss)
+          'Triangulation_loss', triangulation_loss, ...
+          'Max_Angle', maxAngle)
     pause(0.01);
    % waitforbuttonpress;
 end
