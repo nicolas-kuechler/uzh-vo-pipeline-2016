@@ -2,9 +2,7 @@ clc;
 clear all;
 close all;
 
-addpath(genpath('./'));
-
-Ts = [];
+addpath(genpath('./'))
 %% Setup
 ds = 0; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
@@ -90,6 +88,7 @@ prev_state = struct('pt_cloud', pt_cloud, ...
                     'kp_pose_start', []);
 
 %% Continuous operation
+Ts = [0 0 0]';
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
 for i = range
@@ -108,15 +107,19 @@ for i = range
     end
     
     [next_T, next_state ] = processFrame(next_image, prev_img, prev_state, K, params);
-
+    
     % Makes sure that plots refresh.    
+    Ts = [Ts, Ts(:, size(Ts,2)) + next_T(:, 4)];
+    subplot(2,2,1);
+    plot(Ts(1,:)./10, Ts(3,:)./10, ground_truth(1:i,1), ground_truth(1:i,2));
+    legend('Ts','ground truth')
     
+    subplot(2,2,2);
+    plot3(Ts(1,:),Ts(2,:), Ts(3,:))
+    grid on
     
-    Ts = [Ts, next_T(:, 4)];
-    subplot(2,1,1);
-    plot(-Ts(1,:), -Ts(3,:), ground_truth(1:i,1), ground_truth(1:i,2));
     prev_img = next_image;
     prev_state = next_state;
     pause(0.01);
-    waitforbuttonpress;
+    %waitforbuttonpress;
 end

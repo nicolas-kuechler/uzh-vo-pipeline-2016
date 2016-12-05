@@ -111,7 +111,7 @@ assert(size(candidate_kp, 2) == size(kp_pose_start, 2));
 %% DEBUG: (remove after testing)
 debug = true;
 if debug && ~isempty(candidate_kp)
-    subplot(2,1,2);
+    subplot(2,2,[3 4]);
     imshow(curr_img);
     hold on;
     % plot new matched keypoints
@@ -152,12 +152,14 @@ if debug && ~isempty(candidate_kp)
 %      quiver(next_kp_track_start(1,:),next_kp_track_start(2,:),...
 %          -next_kp_track_start(1,:)+next_candidate_kp(1,:), -next_kp_track_start(2,:)+next_candidate_kp(2,:), 0, 'c');
 %     
+    legend('current matched keypoints','reprojected 3D points','Location','NorthOutside')
     title(['Red x: current matched keypoints, Magenta v: previous matched keypoints,' ...
            'Magenta o: reprojected point cloud, Blue x: current candidate keypoints,' ...
            'Cyan v: previous candidate keypoints, Cyan o: track starts']);
        
        
     hold off;
+    
     struct('Matched', size(curr_matched_kp, 2), ...
           'Cloud', size(pt_cloud, 2), ...
           'Candidates', size(candidate_kp, 2), ...
