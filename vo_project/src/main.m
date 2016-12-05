@@ -91,6 +91,19 @@ prev_state = struct('pt_cloud', pt_cloud, ...
 Ts = T1;
 
 %% Continuous operation
+
+%Global flags
+debug = true; %enable debug data collection
+playback_mode = true; %save frames to trace errors, requres active debug mode
+plot_mode = false; 
+window_max_size = 20;
+
+if playback_mode
+    window = {};
+    window_index = 0;
+    window_size= 0;
+end
+
 Ts = [0 0 0]';
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
@@ -110,14 +123,24 @@ for i = range
     end
     
     [next_T, next_state, debug_data ] = processFrame(next_image, prev_img, prev_state, K, params, ...
-        'debug', true);  %debug enabled
+        'debug', debug);  %debug enabled
     
     % Makes sure that plots refresh.    
     Ts = [Ts, Ts(:, size(Ts,2)) + next_T(:, 4)];
     
-    debugPlot(ground_truth,i,next_image, next_state, ...
-        debug_data,next_T, Ts, K)
+    if debug && plot_mode 
+        debugPlot(ground_truth,i,next_image, next_state, ...
+            debug_data,next_T, Ts, K);
+    end
 
+    if debug && playback_mode 
+        window_index = mod(window_index, window_max_size)+1
+        window{window_index} = debug_data;
+        if window_size < 20
+            window_size = window_size+1;
+        end
+    end
+    
     prev_img = next_image;
     prev_state = next_state;
 
