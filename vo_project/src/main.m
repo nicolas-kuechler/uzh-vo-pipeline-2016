@@ -2,7 +2,8 @@ clc;
 clear all;
 close all;
 
-addpath(genpath('./'))
+
+addpath(genpath('./'));
 %% Setup
 ds = 0; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
@@ -72,8 +73,8 @@ end
 params = struct(...
     'harris_patch_size', 9, ...
     'harris_kappa', 0.08, ...
-    'num_keypoints', 500, ...
-    'nonmaximum_supression_radius', 8, ...
+    'num_keypoints', 300, ...
+    'nonmaximum_supression_radius', 15, ...
     'descriptor_radius', 9,...
     'match_lambda', 5);
 
@@ -86,6 +87,8 @@ prev_state = struct('pt_cloud', pt_cloud, ...
                     'candidate_kp', [], ...
                     'kp_track_start', [], ...
                     'kp_pose_start', []);
+                
+Ts = T1;
 
 %% Continuous operation
 Ts = [0 0 0]';
@@ -106,20 +109,16 @@ for i = range
         assert(false);
     end
     
-    [next_T, next_state ] = processFrame(next_image, prev_img, prev_state, K, params);
+    [next_T, next_state, debug_data ] = processFrame(next_image, prev_img, prev_state, K, params, ...
+        'debug', true);  %debug enabled
     
     % Makes sure that plots refresh.    
     Ts = [Ts, Ts(:, size(Ts,2)) + next_T(:, 4)];
-    subplot(2,2,1);
-    plot(Ts(1,:)./10, Ts(3,:)./10, ground_truth(1:i,1), ground_truth(1:i,2));
-    legend('Ts','ground truth')
     
-    subplot(2,2,2);
-    plot3(Ts(1,:),Ts(2,:), Ts(3,:))
-    grid on
-    
+    debugPlot(ground_truth,i,next_image, next_state, ...
+        debug_data,next_T, Ts, K)
+
     prev_img = next_image;
     prev_state = next_state;
-    pause(0.01);
-    %waitforbuttonpress;
+
 end
