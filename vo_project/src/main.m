@@ -4,9 +4,8 @@ close all;
 
 addpath(genpath('./'));
 
-Ts = [];
 %% Setup
-ds = 0; % 0: KITTI, 1: Malaga, 2: parking
+ds = 2; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
 malaga_path = '../data/malaga-urban-dataset-extract-07';
 parking_path = '../data/parking';
@@ -74,8 +73,8 @@ end
 params = struct(...
     'harris_patch_size', 9, ...
     'harris_kappa', 0.08, ...
-    'num_keypoints', 500, ...
-    'nonmaximum_supression_radius', 8, ...
+    'num_keypoints', 300, ...
+    'nonmaximum_supression_radius', 15, ...
     'descriptor_radius', 9,...
     'match_lambda', 5);
 
@@ -88,6 +87,8 @@ prev_state = struct('pt_cloud', pt_cloud, ...
                     'candidate_kp', [], ...
                     'kp_track_start', [], ...
                     'kp_pose_start', []);
+                
+Ts = T1;
 
 %% Continuous operation
 range = (bootstrap_frames(2)+1):last_frame;
@@ -113,8 +114,8 @@ for i = range
     
     
     Ts = [Ts, next_T(:, 4)];
-    subplot(2,1,1);
-    plot(-Ts(1,:), -Ts(3,:), ground_truth(1:i,1), ground_truth(1:i,2));
+    %subplot(2,1,1);
+    %plot(-Ts(1,:), -Ts(3,:), ground_truth(bootstrap_frames(2):i,1), ground_truth(bootstrap_frames(2):i,2));
     prev_img = next_image;
     prev_state = next_state;
     pause(0.01);
