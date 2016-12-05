@@ -117,7 +117,7 @@ assert(size(candidate_kp, 2) == size(kp_pose_start, 2));
 %% DEBUG: (remove after testing)
 debug = true;
 if debug && ~isempty(candidate_kp)
-    %subplot(2,1,2);
+    subplot(2,1,2);
     imshow(curr_img);
     hold on;
     % plot new matched keypoints

@@ -114,8 +114,8 @@ for i = range
     
     
     Ts = [Ts, next_T(:, 4)];
-    %subplot(2,1,1);
-    %plot(-Ts(1,:), -Ts(3,:), ground_truth(bootstrap_frames(2):i,1), ground_truth(bootstrap_frames(2):i,2));
+    subplot(2,1,1);
+    plot(Ts');%, ground_truth(bootstrap_frames(2):i,1), ground_truth(bootstrap_frames(2):i,2));
     prev_img = next_image;
     prev_state = next_state;
     pause(0.01);
