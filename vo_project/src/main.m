@@ -92,7 +92,7 @@ Ts = T1;
 
 %% Continuous operation
 
-%Global flags
+%Global config
 debug = true; %enable debug data collection
 playback_mode = true; %save frames to trace errors, requres active debug mode
 plot_mode = false; 
@@ -100,8 +100,12 @@ window_max_size = 20;
 
 if playback_mode
     window = {};
-    window_index = 0;
-    window_size= 0;
+    
+    window_params = struct('window_index', 0, ...
+                        'window_size', 0, ...
+                        'window_max_size', window_max_size);
+                    
+    clearvars gui %clear this, otherwise the handle is invalid when running in ctrl+enter mode
 end
 
 Ts = [0 0 0]';
@@ -134,10 +138,19 @@ for i = range
     end
 
     if debug && playback_mode 
-        window_index = mod(window_index, window_max_size)+1
-        window{window_index} = debug_data;
-        if window_size < 20
-            window_size = window_size+1;
+        window_params.window_index = mod(window_params.window_index, ...
+            window_params.window_max_size)+1;
+        
+        window{window_params.window_index} = struct('debug_data',debug_data, ...
+            'image', next_image, ...
+            'translations', Ts);        if window_params.window_size < 20
+            window_params.window_size = window_params.window_size+1;
+        end
+        
+        if ~exist('gui','var')
+            gui = debugGui(window,window_params, struct());
+        else
+            gui = debugGui(window,window_params, gui);
         end
     end
     
