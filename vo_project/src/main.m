@@ -2,8 +2,9 @@ clc;
 clear all;
 close all;
 
-
 addpath(genpath('./'));
+rng(1);
+
 %% Setup
 ds = 0; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
@@ -73,7 +74,7 @@ end
 params = struct(...
     'harris_patch_size', 9, ...
     'harris_kappa', 0.08, ...
-    'num_keypoints', 300, ...
+    'num_keypoints', 1000, ...
     'nonmaximum_supression_radius', 15, ...
     'descriptor_radius', 9,...
     'match_lambda', 5);
@@ -156,5 +157,4 @@ for i = range
     
     prev_img = next_image;
     prev_state = next_state;
-
 end

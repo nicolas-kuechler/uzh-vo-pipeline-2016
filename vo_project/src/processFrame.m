@@ -81,8 +81,7 @@ if ~isempty(candidate_kp)
     [new_pt_cloud, new_matched_kp, remain, maxAngle] = ...
         tryTriangulate(candidate_kp, kp_track_start, kp_pose_start, curr_T, K);
     triangulation_loss = sum(1 - remain);
-    
-    %%%Move successfully triangulated candidates to the matched keypoints with their  
+     
     % Remove successfully triangulated candidates
     candidate_kp = candidate_kp(:, remain);
     kp_track_start = kp_track_start(:, remain);
@@ -100,12 +99,12 @@ end
     % TODO Check wheter good idea to select the number of keypoints
     % as a function of the currently tracked number of keypoints
     if isempty(candidate_kp)
-        num_keypoints = 100;
+        num_keypoints = 1000;
         tracking_loss = 0;
         triangulation_loss = 0;
         maxAngle = 0;
     else
-        num_keypoints =  loss; % TODO Tune
+        num_keypoints =  loss + 5; % TODO Tune
     end
     scores = harris(curr_img, params.harris_patch_size, params.harris_kappa);
     new_candidate_kp = selectKeypoints(scores, num_keypoints, params.nonmaximum_supression_radius);
@@ -140,12 +139,12 @@ if debug && ~isempty(candidate_kp)
       
        %Plot key values
        struct('Matched', size(curr_matched_kp, 2), ...
-          'Cloud', size(pt_cloud, 2), ...
-          'Candidates', size(candidate_kp, 2), ...
-          'Candidates_added', num_keypoints, ...
-          'Tracking_loss', tracking_loss, ...
-          'Triangulation_loss', triangulation_loss, ...
-          'Max_Angle', maxAngle)
+              'Cloud', size(pt_cloud, 2), ...
+              'Candidates', size(candidate_kp, 2), ...
+              'Candidates_added', num_keypoints, ...
+              'Tracking_loss', tracking_loss, ...
+              'Triangulation_loss', triangulation_loss, ...
+              'Max_Angle', maxAngle)
 else
     debug_data = struct();
 end
