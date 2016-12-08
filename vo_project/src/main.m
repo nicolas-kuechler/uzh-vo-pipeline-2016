@@ -84,7 +84,6 @@ params = struct(...
 % state 
 prev_state = struct('pt_cloud', pt_cloud, ...
                     'matched_kp', keypoints_r, ...
-                    'corr2d3d', 1 : size(keypoints_r, 2), ...
                     'candidate_kp', [], ...
                     'kp_track_start', [], ...
                     'kp_pose_start', []);
@@ -129,6 +128,23 @@ for i = range
     
     [next_T, next_state, debug_data ] = processFrame(next_image, prev_img, prev_state, K, params, ...
         'debug', debug);  %debug enabled
+    R_pose = next_T(:,1:3)';
+    t_pose = -R_pose * next_T(:,4);
+    
+    %%%PLOT ALTERNATIVE
+    
+    
+    cameraSize = 0.1;
+    figure(100);
+    plotCamera('Location',t_pose,'Orientation',R_pose,'Size',...
+        cameraSize,'Color','r','Label',num2str(i),'Opacity',.5);
+    hold on
+
+    pcshow(next_state.pt_cloud','VerticalAxis','y','VerticalAxisDir',...
+        'down','MarkerSize',45);
+    grid on
+    %%%PLOT ALTERNATIVE END
+    
     
     % Makes sure that plots refresh.    
     Ts = [Ts, next_T(:,4)];
