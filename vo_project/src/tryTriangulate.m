@@ -31,7 +31,7 @@ for i = 1 : num_kp
     u = K \ [kp_track_start(:, i); 1];
     
     % transform track start bearing vector in current camera frame
-    u = T(:,1:3)' * T_i(:, 1:3) * u;
+    u = T(:,1:3) * T_i(:, 1:3)' * u;
     
     % calculate the angle between bearing vectors
     Theta = 180 / pi * acos(dot(u/norm(u), v/norm(v)));
@@ -41,10 +41,10 @@ for i = 1 : num_kp
         % if the angle is big enough triangulate a 3d point between the track
         % start key point and the current candidate key point
         new_3d_pt = linearTriangulation(kp_track_start(:, i), ...
-            candidate_kp(:, i), K * T_i, K * T);
+            candidate_kp(:, i), K * T_i ,K * T);
         
         % transform into current camera frame
-        new_3d_pt_camera_frame = T(:,1:3)'*new_3d_pt - T(:,1:3)'*T(:,4);
+        new_3d_pt_camera_frame = T(:,1:3)*new_3d_pt + T(:,4);
         
         % reject new 3d point if it lies behind the camera (z < 0)
         if new_3d_pt_camera_frame(3) > 0
