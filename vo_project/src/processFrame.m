@@ -67,21 +67,21 @@ pt_cloud = pt_cloud(:, inlier_mask);
 loss = 0;
 
 if ~isempty(candidate_kp)
-    
+
     % Track candidate keypoints
     [candidate_kp, point_validity] = propagateState(candidate_kp, prev_img, curr_img);
-    
+
     % Remove lost candidate keypoints
     candidate_kp = candidate_kp(:, point_validity);
     kp_track_start = kp_track_start(:, point_validity);
     kp_pose_start = kp_pose_start(:, point_validity);
     tracking_loss = sum(1 - point_validity);
-    
+
     % Try to triangulate points (with triangulation check if possible)
     [new_pt_cloud, new_matched_kp, remain, maxAngle] = ...
         tryTriangulate(candidate_kp, kp_track_start, kp_pose_start, curr_T, K);
     triangulation_loss = sum(1 - remain);
-     
+
     % Remove successfully triangulated candidates
     candidate_kp = candidate_kp(:, remain);
     kp_track_start = kp_track_start(:, remain);
@@ -90,33 +90,32 @@ if ~isempty(candidate_kp)
     % add new 3d points and matched key points
     pt_cloud = [pt_cloud, new_pt_cloud];
     curr_matched_kp = [curr_matched_kp, new_matched_kp];
-    
+
     loss = triangulation_loss + tracking_loss;
 end
 
 %% Establish new keypoint candidates for current frame
 
-    % TODO Check wheter good idea to select the number of keypoints
-    % as a function of the currently tracked number of keypoints
-    if isempty(candidate_kp)
-        num_keypoints = 300;
-        tracking_loss = 0;
-        triangulation_loss = 0;
-        maxAngle = 0;
-    else
-        num_keypoints =  loss + 5; % TODO Tune
-    end
-    scores = harris(curr_img, params.harris_patch_size, params.harris_kappa);
-    scores = suppressExistingMatches(scores, [candidate_kp, curr_matched_kp], ...
-        params.nonmaximum_supression_radius);
-    new_candidate_kp = selectKeypoints(scores, num_keypoints, params.nonmaximum_supression_radius);
+% TODO Check wheter good idea to select the number of keypoints
+% as a function of the currently tracked number of keypoints
+if isempty(candidate_kp)
+    num_keypoints = 5;
+    tracking_loss = 0;
+    triangulation_loss = 0;
+    maxAngle = 0;
+else
+    num_keypoints =  loss; % TODO Tune
+end
+scores = harris(curr_img, params.harris_patch_size, params.harris_kappa);
+scores = suppressExistingMatches(scores, [candidate_kp, curr_matched_kp], ...
+    params.nonmaximum_supression_radius);
+new_candidate_kp = selectKeypoints(scores, num_keypoints, params.nonmaximum_supression_radius);
 
-    % add them to existing candidate keypoints
-    candidate_kp = [candidate_kp, new_candidate_kp];
-    kp_track_start = [kp_track_start, new_candidate_kp];
-    kp_pose_start = [kp_pose_start, repmat(curr_T(:), 1, num_keypoints)];
-
-
+% add them to existing candidate keypoints
+candidate_kp = [candidate_kp, new_candidate_kp];
+kp_track_start = [kp_track_start, new_candidate_kp];
+kp_pose_start = [kp_pose_start, repmat(curr_T(:), 1, num_keypoints)];
+    
 %% Write all variables to new state            
 curr_state = struct('pt_cloud', pt_cloud, ...
                     'matched_kp', curr_matched_kp, ...
@@ -128,8 +127,8 @@ assert(size(candidate_kp, 2) == size(kp_track_start, 2));
 assert(size(candidate_kp, 2) == size(kp_pose_start, 2));
 
 %% Calcuate debug struct 
-if debug && ~isempty(candidate_kp)
-    debug_data =   struct( ...
+if debug 
+    debug_data = struct( ...
           'curr_matched_kp', curr_matched_kp, ...
           'Matched', size(curr_matched_kp, 2), ...
           'Cloud', size(pt_cloud, 2), ...
