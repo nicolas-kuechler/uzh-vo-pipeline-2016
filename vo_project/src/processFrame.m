@@ -107,6 +107,8 @@ end
         num_keypoints =  loss + 5; % TODO Tune
     end
     scores = harris(curr_img, params.harris_patch_size, params.harris_kappa);
+    scores = suppressExistingMatches(scores, [candidate_kp, curr_matched_kp], ...
+        params.nonmaximum_supression_radius);
     new_candidate_kp = selectKeypoints(scores, num_keypoints, params.nonmaximum_supression_radius);
 
     % add them to existing candidate keypoints
