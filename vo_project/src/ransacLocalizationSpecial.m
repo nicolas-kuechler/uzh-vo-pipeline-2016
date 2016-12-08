@@ -65,3 +65,4 @@ for i = 1:num_iterations
         T = [R_C_W_guess(:,:,alt) t_C_W_guess(:,:,alt)];
     end
 end
+end
