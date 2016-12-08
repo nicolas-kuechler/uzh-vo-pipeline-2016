@@ -94,8 +94,8 @@ Ts = T1;
 %% Continuous operation
 
 %Global config
-debug = true; %enable debug data collection
-playback_mode = true; %save frames to trace errors, requres active debug mode
+debug = false; %enable debug data collection
+playback_mode = false; %save frames to trace errors, requres active debug mode
 plot_mode = false; 
 window_max_size = 20;
 
