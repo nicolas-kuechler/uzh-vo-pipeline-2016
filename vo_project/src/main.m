@@ -74,7 +74,7 @@ end
 params = struct(...
     'harris_patch_size', 9, ...
     'harris_kappa', 0.08, ...
-    'num_keypoints', 1000, ...
+    'num_keypoints', 500, ...
     'nonmaximum_supression_radius', 15, ...
     'descriptor_radius', 9,...
     'match_lambda', 5);
@@ -94,9 +94,9 @@ Ts = T1;
 %% Continuous operation
 
 %Global config
-debug = false; %enable debug data collection
+debug = true; %enable debug data collection
 playback_mode = false; %save frames to trace errors, requres active debug mode
-plot_mode = false; 
+plot_mode = true; 
 window_max_size = 20;
 
 if playback_mode
@@ -131,7 +131,7 @@ for i = range
         'debug', debug);  %debug enabled
     
     % Makes sure that plots refresh.    
-    Ts = [Ts, Ts(:, size(Ts,2)) + next_T(:, 4)];
+    Ts = [Ts, next_T(:,4)];
     
     if debug && plot_mode 
         debugPlot(ground_truth,i,next_image, next_state, ...

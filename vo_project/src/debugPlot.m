@@ -3,7 +3,7 @@ function debugPlot(ground_truth,gt_i, image, next_state, debug_data,next_T, Ts, 
     pt_cloud = next_state.pt_cloud;
     candidate_kp = next_state.candidate_kp;
     kp_track_start = next_state.kp_track_start;
-    
+    figure(2);
     subplot(2,2,1);
     plot(Ts(1,:)./10, Ts(3,:)./10, ground_truth(1:gt_i,1), ground_truth(1:gt_i,2));
     legend('Ts','ground truth')

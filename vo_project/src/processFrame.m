@@ -99,7 +99,7 @@ end
     % TODO Check wheter good idea to select the number of keypoints
     % as a function of the currently tracked number of keypoints
     if isempty(candidate_kp)
-        num_keypoints = 1000;
+        num_keypoints = 300;
         tracking_loss = 0;
         triangulation_loss = 0;
         maxAngle = 0;
@@ -107,8 +107,8 @@ end
         num_keypoints =  loss + 5; % TODO Tune
     end
     scores = harris(curr_img, params.harris_patch_size, params.harris_kappa);
-    %scores = suppressExistingMatches(scores, [candidate_kp, curr_matched_kp], ...
-    %    params.nonmaximum_supression_radius);
+    scores = suppressExistingMatches(scores, [candidate_kp, curr_matched_kp], ...
+        params.nonmaximum_supression_radius);
     new_candidate_kp = selectKeypoints(scores, num_keypoints, params.nonmaximum_supression_radius);
 
     % add them to existing candidate keypoints
