@@ -69,8 +69,7 @@ if ~isempty(candidate_kp)
     [new_pt_cloud, new_matched_kp, remain, maxAngle] = ...
         tryTriangulate(candidate_kp, kp_track_start, kp_pose_start, curr_T, K);
     triangulation_loss = sum(1 - remain);
-    
-    %%%Move successfully triangulated candidates to the matched keypoints with their  
+     
     % Remove successfully triangulated candidates
     candidate_kp = candidate_kp(:, remain);
     kp_track_start = kp_track_start(:, remain);
@@ -88,12 +87,12 @@ end
     % TODO Check wheter good idea to select the number of keypoints
     % as a function of the currently tracked number of keypoints
     if isempty(candidate_kp)
-        num_keypoints = 100;
+        num_keypoints = 1000;
         tracking_loss = 0;
         triangulation_loss = 0;
         maxAngle = 0;
     else
-        num_keypoints =  loss; % TODO Tune
+        num_keypoints =  loss + 5; % TODO Tune
     end
     scores = harris(curr_img, params.harris_patch_size, params.harris_kappa);
     new_candidate_kp = selectKeypoints(scores, num_keypoints, params.nonmaximum_supression_radius);
@@ -130,29 +129,29 @@ if debug && ~isempty(candidate_kp)
 %     quiver(matched_kp(1,:),matched_kp(2,:),...
 %         -matched_kp(1,:)+prop_matched_kp(1,:), -matched_kp(2,:)+prop_matched_kp(2,:), 0, 'm');
 %     
-     % plot reprojected 3D points (should coincide with new_matched_kp)
-    next_keypoints_reprojected = reprojectPoints(pt_cloud, curr_T, K);
-    plot(next_keypoints_reprojected(1,:), next_keypoints_reprojected(2,:), ...
-         'bx', 'Linewidth', 2);
-    rms_repr_error = sqrt(sum((next_keypoints_reprojected(:) - curr_matched_kp(:)).^2) / size(curr_matched_kp, 2));
-    text(10,10, ['RMS Reprojection error = ' num2str(rms_repr_error)], 'Color', [0,1,0]); 
+%      % plot reprojected 3D points (should coincide with new_matched_kp)
+%     next_keypoints_reprojected = reprojectPoints(pt_cloud, curr_T, K);
+%     plot(next_keypoints_reprojected(1,:), next_keypoints_reprojected(2,:), ...
+%          'bx', 'Linewidth', 2);
+%     rms_repr_error = sqrt(sum((next_keypoints_reprojected(:) - curr_matched_kp(:)).^2) / size(curr_matched_kp, 2));
+%     text(10,10, ['RMS Reprojection error = ' num2str(rms_repr_error)], 'Color', [0,1,0]); 
      
 %     % plot new candidate keypoints
 %     plot(next_candidate_kp(1,:), next_candidate_kp(2,:), 'bx', 'Linewidth', 2);
 %     
-%     % plot previous candidate keypoints
-    plot(candidate_kp(1,:), candidate_kp(2,:), 'cv', 'Linewidth', 2);
-    
-%     % plot correspondences between old and new candidate keypoints
-%     quiver(candidate_kp(1,:),candidate_kp(2,:),...
-%         -candidate_kp(1,:)+prop_candidate_kp(1,:), -candidate_kp(2,:)+prop_candidate_kp(2,:), 0, 'c');
+% %     % plot previous candidate keypoints
+%     plot(candidate_kp(1,:), candidate_kp(2,:), 'cv', 'Linewidth', 2);
 %     
-    % plot track start of each candidate keypoints
-    plot(kp_track_start(1,:), kp_track_start(2,:), 'go', 'Linewidth', 2);
-    
-    % plot correspondences between track start and old candidate keypoints
-    quiver(kp_track_start(1,:),kp_track_start(2,:),...
-        -kp_track_start(1,:)+candidate_kp(1,:), -kp_track_start(2,:)+candidate_kp(2,:), 0, 'c');
+% %     % plot correspondences between old and new candidate keypoints
+% %     quiver(candidate_kp(1,:),candidate_kp(2,:),...
+% %         -candidate_kp(1,:)+prop_candidate_kp(1,:), -candidate_kp(2,:)+prop_candidate_kp(2,:), 0, 'c');
+% %     
+%     % plot track start of each candidate keypoints
+%     plot(kp_track_start(1,:), kp_track_start(2,:), 'go', 'Linewidth', 2);
+%     
+%     % plot correspondences between track start and old candidate keypoints
+%     quiver(kp_track_start(1,:),kp_track_start(2,:),...
+%         -kp_track_start(1,:)+candidate_kp(1,:), -kp_track_start(2,:)+candidate_kp(2,:), 0, 'c');
 
 %      % plot correspondences between track start and old candidate keypoints
 %      quiver(next_kp_track_start(1,:),next_kp_track_start(2,:),...

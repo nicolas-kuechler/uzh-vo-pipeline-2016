@@ -3,9 +3,10 @@ clear all;
 close all;
 
 addpath(genpath('./'));
+rng(1);
 
 %% Setup
-ds = 1; % 0: KITTI, 1: Malaga, 2: parking
+ds = 0; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
 malaga_path = '../data/malaga-urban-dataset-extract-07';
 parking_path = '../data/parking';
@@ -73,7 +74,7 @@ end
 params = struct(...
     'harris_patch_size', 9, ...
     'harris_kappa', 0.08, ...
-    'num_keypoints', 300, ...
+    'num_keypoints', 1000, ...
     'nonmaximum_supression_radius', 15, ...
     'descriptor_radius', 9,...
     'match_lambda', 5);
@@ -113,11 +114,14 @@ for i = range
     % Makes sure that plots refresh.    
     
     
-    Ts = [Ts, next_T(:, 4)];
+    Ts = [Ts, -next_T(:, 1:3)*next_T(:, 4)];
     subplot(2,1,1);
-    plot(Ts');%, ground_truth(bootstrap_frames(2):i,1), ground_truth(bootstrap_frames(2):i,2));
+    plot(Ts(1,:),Ts(3,:),ground_truth(bootstrap_frames(2):i,1), ground_truth(bootstrap_frames(2):i,2));%, ground_truth(bootstrap_frames(2):i,1), ground_truth(bootstrap_frames(2):i,2));
     prev_img = next_image;
     prev_state = next_state;
     pause(0.01);
-    waitforbuttonpress;
+    ground_truth(i,:)
+    if i > 69
+        a = 1;
+    end
 end
