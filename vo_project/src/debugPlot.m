@@ -35,15 +35,15 @@ function debugPlot(ground_truth,gt_i, image, next_state, debug_data,next_T, Ts, 
 %     % plot new candidate keypoints
 %     plot(next_candidate_kp(1,:), next_candidate_kp(2,:), 'bx', 'Linewidth', 2);
 %     
-%     % plot previous candidate keypoints
-    plot(candidate_kp(1,:), candidate_kp(2,:), 'cv', 'Linewidth', 2);
+    % plot previous candidate keypoints
+   plot(candidate_kp(1,:), candidate_kp(2,:), 'cv', 'Linewidth', 2);
     
 %     % plot correspondences between old and new candidate keypoints
 %     quiver(candidate_kp(1,:),candidate_kp(2,:),...
 %         -candidate_kp(1,:)+prop_candidate_kp(1,:), -candidate_kp(2,:)+prop_candidate_kp(2,:), 0, 'c');
 %     
-    % plot track start of each candidate keypoints
-    plot(kp_track_start(1,:), kp_track_start(2,:), 'go', 'Linewidth', 2);
+   % plot track start of each candidate keypoints
+   plot(kp_track_start(1,:), kp_track_start(2,:), 'go', 'Linewidth', 2);
     
     % plot correspondences between track start and old candidate keypoints
     quiver(kp_track_start(1,:),kp_track_start(2,:),...
