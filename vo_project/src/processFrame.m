@@ -79,7 +79,7 @@ if ~isempty(candidate_kp)
 
     % Try to triangulate points (with triangulation check if possible)
     [new_pt_cloud, new_matched_kp, remain, maxAngle] = ...
-        tryTriangulate(candidate_kp, kp_track_start, kp_pose_start, curr_T, K);
+        tryTriangulate(curr_img, candidate_kp, kp_track_start, kp_pose_start, curr_T, K);
     triangulation_loss = sum(1 - remain);
 
     % Remove successfully triangulated candidates
@@ -99,7 +99,7 @@ end
 % TODO Check wheter good idea to select the number of keypoints
 % as a function of the currently tracked number of keypoints
 if isempty(candidate_kp)
-    num_keypoints = 200;
+    num_keypoints = 50;
     tracking_loss = 0;
     triangulation_loss = 0;
     maxAngle = 0;

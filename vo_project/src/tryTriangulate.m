@@ -1,5 +1,5 @@
 function [cloud, matched_kp, remain, maxAngle] = ...
-    tryTriangulate(candidate_kp, kp_track_start, kp_pose_start, T, K)
+    tryTriangulate(new_image, candidate_kp, kp_track_start, kp_pose_start, T, K)
 % TRYTRIANGULATE function that takes candidate keypoints (candidate_k) and
 % key points at the start of the track (kp_track_start) and triangulates
 % new 3D points if their bearing angle in between is large enough.
@@ -13,7 +13,7 @@ function [cloud, matched_kp, remain, maxAngle] = ...
 %         T: (3 x 4) camera pose from the current frame
 %         K: (3 x 3) camera calibration matrix.
 
-threshold = 5; % threshold on in between bearing angle
+threshold = 2; % threshold on in between bearing angle
 num_kp = size(candidate_kp, 2);
 cloud = [];
 matched_kp = [];
@@ -57,4 +57,18 @@ for i = 1 : num_kp
     
 end
 maxAngle = max(t);
+debug = true;
+if debug
+    figure(4)
+    imshow(new_image);
+    hold on;
+    % plot track start of each candidate keypoints starts
+    plot(kp_track_start(1,:), kp_track_start(2,:), 'go', 'Linewidth', 2);
+    % plot track start of each candidate keypoints
+    plot(candidate_kp(1,:), candidate_kp(2,:), 'rx', 'Linewidth', 2);
+    for i = 1 : size(candidate_kp,2)
+         text(candidate_kp(1,i)+2, candidate_kp(2,i)+2, num2str(floor(t(i))), 'Color', [1,1,0]);
+    end
+    
+    
 end
