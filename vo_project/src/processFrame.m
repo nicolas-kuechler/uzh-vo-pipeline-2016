@@ -1,4 +1,4 @@
-function [ curr_T, curr_state ] = processFrame(curr_img, prev_img, prev_state, K, params)
+function [ curr_T, curr_state, debug_data ] = processFrame(curr_img, prev_img, prev_state, K, params, varargin)
 %PROCESSFRAME Determines pose of camera with next_image in frame of 
 % camera with prev_img. Determine point_cloud <-> keypoint correspondence
 % with keypoints from next image and point cloud from prev img. 
@@ -29,6 +29,18 @@ function [ curr_T, curr_state ] = processFrame(curr_img, prev_img, prev_state, K
 %          R_next: rotation of camera with next_img with respect to prev_img.
 %          T_next: translation of camera with next_img with respect to
 %                  prev_img.
+
+
+%# valid parameters, and their default values
+pnames = {'debug'};
+dflts  = {'true'};
+
+%# parse function arguments
+[debug] = internal.stats.parseArgs(pnames, dflts, varargin{:});
+
+%# use the processed values: clr, lw, ls, txt
+%# corresponding to the specified parameters
+%# ...
                 
 pt_cloud = prev_state.pt_cloud; % pt_cloud w. r. t. last key frame
 curr_matched_kp = prev_state.matched_kp; % keypoints (matched with pt_cloud)
@@ -55,22 +67,21 @@ pt_cloud = pt_cloud(:, inlier_mask);
 loss = 0;
 
 if ~isempty(candidate_kp)
-    
+
     % Track candidate keypoints
     [candidate_kp, point_validity] = propagateState(candidate_kp, prev_img, curr_img);
-    
+
     % Remove lost candidate keypoints
     candidate_kp = candidate_kp(:, point_validity);
     kp_track_start = kp_track_start(:, point_validity);
     kp_pose_start = kp_pose_start(:, point_validity);
     tracking_loss = sum(1 - point_validity);
-    
+
     % Try to triangulate points (with triangulation check if possible)
-    [new_pt_cloud, new_matched_kp, remain] = ...
+    [new_pt_cloud, new_matched_kp, remain, maxAngle] = ...
         tryTriangulate(candidate_kp, kp_track_start, kp_pose_start, curr_T, K);
     triangulation_loss = sum(1 - remain);
-    
-    %%%Move successfully triangulated candidates to the matched keypoints with their  
+
     % Remove successfully triangulated candidates
     candidate_kp = candidate_kp(:, remain);
     kp_track_start = kp_track_start(:, remain);
@@ -79,25 +90,32 @@ if ~isempty(candidate_kp)
     % add new 3d points and matched key points
     pt_cloud = [pt_cloud, new_pt_cloud];
     curr_matched_kp = [curr_matched_kp, new_matched_kp];
-    
+
     loss = triangulation_loss + tracking_loss;
 end
 
 %% Establish new keypoint candidates for current frame
 
-    % TODO Check wheter good idea to select the number of keypoints
-    % as a function of the currently tracked number of keypoints
-    num_keypoints =  loss + 200 - size(curr_matched_kp,2); % TODO Tune
+% TODO Check wheter good idea to select the number of keypoints
+% as a function of the currently tracked number of keypoints
+if isempty(candidate_kp)
+    num_keypoints = 5;
+    tracking_loss = 0;
+    triangulation_loss = 0;
+    maxAngle = 0;
+else
+    num_keypoints =  loss; % TODO Tune
+end
+scores = harris(curr_img, params.harris_patch_size, params.harris_kappa);
+scores = suppressExistingMatches(scores, [candidate_kp, curr_matched_kp], ...
+    params.nonmaximum_supression_radius);
+new_candidate_kp = selectKeypoints(scores, num_keypoints, params.nonmaximum_supression_radius);
+
+% add them to existing candidate keypoints
+candidate_kp = [candidate_kp, new_candidate_kp];
+kp_track_start = [kp_track_start, new_candidate_kp];
+kp_pose_start = [kp_pose_start, repmat(curr_T(:), 1, num_keypoints)];
     
-    scores = harris(curr_img, params.harris_patch_size, params.harris_kappa);
-    new_candidate_kp = selectKeypoints(scores, num_keypoints, params.nonmaximum_supression_radius);
-
-    % add them to existing candidate keypoints
-    candidate_kp = [candidate_kp, new_candidate_kp];
-    kp_track_start = [kp_track_start, new_candidate_kp];
-    kp_pose_start = [kp_pose_start, repmat(curr_T(:), 1, num_keypoints)];
-
-
 %% Write all variables to new state            
 curr_state = struct('pt_cloud', pt_cloud, ...
                     'matched_kp', curr_matched_kp, ...
@@ -108,61 +126,28 @@ curr_state = struct('pt_cloud', pt_cloud, ...
 assert(size(candidate_kp, 2) == size(kp_track_start, 2));
 assert(size(candidate_kp, 2) == size(kp_pose_start, 2));
 
-%% DEBUG: (remove after testing)
-debug = true;
-if debug && ~isempty(candidate_kp)
-    subplot(2,1,2);
-    imshow(curr_img);
-    hold on;
-    % plot new matched keypoints
-    plot(curr_matched_kp(1,:), curr_matched_kp(2,:), 'rx', 'Linewidth', 2);
-    
-%     % plot old matched keypoints
-%     plot(matched_kp(1,:), matched_kp(2,:), 'mv', 'Linewidth', 2);
-%     
-%     % plot correspondences between old and new matched keypoints
-%     quiver(matched_kp(1,:),matched_kp(2,:),...
-%         -matched_kp(1,:)+prop_matched_kp(1,:), -matched_kp(2,:)+prop_matched_kp(2,:), 0, 'm');
-%     
-     % plot reprojected 3D points (should coincide with new_matched_kp)
-    next_keypoints_reprojected = reprojectPoints(pt_cloud, curr_T, K);
-    plot(next_keypoints_reprojected(1,:), next_keypoints_reprojected(2,:), ...
-         'bx', 'Linewidth', 2);
-    rms_repr_error = sqrt(sum((next_keypoints_reprojected(:) - curr_matched_kp(:)).^2) / size(curr_matched_kp, 2));
-    text(10,10, ['RMS Reprojection error = ' num2str(rms_repr_error)], 'Color', [0,1,0]); 
-     
-%     % plot new candidate keypoints
-%     plot(next_candidate_kp(1,:), next_candidate_kp(2,:), 'bx', 'Linewidth', 2);
-%     
-%     % plot previous candidate keypoints
-%     plot(candidate_kp(1,:), candidate_kp(2,:), 'cv', 'Linewidth', 2);
-    
-%     % plot correspondences between old and new candidate keypoints
-%     quiver(candidate_kp(1,:),candidate_kp(2,:),...
-%         -candidate_kp(1,:)+prop_candidate_kp(1,:), -candidate_kp(2,:)+prop_candidate_kp(2,:), 0, 'c');
-%     
-%     % plot track start of each candidate keypoints
-%     plot(next_kp_track_start(1,:), next_kp_track_start(2,:), 'go', 'Linewidth', 2);
-%     
-%     % plot correspondences between track start and old candidate keypoints
-%     quiver(next_kp_track_start(1,:),next_kp_track_start(2,:),...
-%         -next_kp_track_start(1,:)+candidate_kp(1,:), -next_kp_track_start(2,:)+candidate_kp(2,:), 0, 'c');
-%
-%      % plot correspondences between track start and old candidate keypoints
-%      quiver(next_kp_track_start(1,:),next_kp_track_start(2,:),...
-%          -next_kp_track_start(1,:)+next_candidate_kp(1,:), -next_kp_track_start(2,:)+next_candidate_kp(2,:), 0, 'c');
-%     
-    title(['Red x: current matched keypoints, Magenta v: previous matched keypoints,' ...
-           'Magenta o: reprojected point cloud, Blue x: current candidate keypoints,' ...
-           'Cyan v: previous candidate keypoints, Cyan o: track starts']);
-       
-       
-    hold off;
-    struct('Matched', size(curr_matched_kp, 2), ...
+%% Calcuate debug struct 
+if debug 
+    debug_data = struct( ...
+          'curr_matched_kp', curr_matched_kp, ...
+          'Matched', size(curr_matched_kp, 2), ...
           'Cloud', size(pt_cloud, 2), ...
           'Candidates', size(candidate_kp, 2), ...
-          'Candidates_added', num_keypoints)
-    pause(0.01);
-   % waitforbuttonpress;
+          'Candidates_added', num_keypoints, ...
+          'Tracking_loss', tracking_loss, ...
+          'Triangulation_loss', triangulation_loss, ...
+          'Max_Angle', maxAngle);
+      
+       %Plot key values
+       struct('Matched', size(curr_matched_kp, 2), ...
+              'Cloud', size(pt_cloud, 2), ...
+              'Candidates', size(candidate_kp, 2), ...
+              'Candidates_added', num_keypoints, ...
+              'Tracking_loss', tracking_loss, ...
+              'Triangulation_loss', triangulation_loss, ...
+              'Max_Angle', maxAngle)
+else
+    debug_data = struct();
+end
 end
 

@@ -62,17 +62,7 @@ for i = 1:num_iterations
     if nnz(is_inlier) > max_num_inliers
         max_num_inliers = nnz(is_inlier);
         inlier_mask = is_inlier;
-        R_C_W = R_C_W_guess(:,:,alt);
-        t_C_W = t_C_W_guess(:,:,alt);
+        T = [R_C_W_guess(:,:,alt) t_C_W_guess(:,:,alt)];
     end
 end
-
-if max_num_inliers == 0
-    R_C_W = [];
-    t_C_W = [];
 end
-
-T = [R_C_W, t_C_W];
-
-end
-
