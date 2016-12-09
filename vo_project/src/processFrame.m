@@ -99,7 +99,7 @@ end
 % TODO Check wheter good idea to select the number of keypoints
 % as a function of the currently tracked number of keypoints
 if isempty(candidate_kp)
-    num_keypoints = 5;
+    num_keypoints = 200;
     tracking_loss = 0;
     triangulation_loss = 0;
     maxAngle = 0;
