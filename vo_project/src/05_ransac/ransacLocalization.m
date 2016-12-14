@@ -21,7 +21,7 @@ num_keypoints = 1000;
 
 if use_p3p
     num_iterations = 200;
-    pixel_tolerance = 3;
+    pixel_tolerance = 10;
     k = 3;
 else
     num_iterations = 2000;

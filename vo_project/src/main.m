@@ -3,8 +3,8 @@ clear all;
 close all;
 
 addpath(genpath('./'));
+rng(1);
 
-Ts = [];
 %% Setup
 ds = 0; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
@@ -74,22 +74,41 @@ end
 params = struct(...
     'harris_patch_size', 9, ...
     'harris_kappa', 0.08, ...
-    'num_keypoints', 500, ...
-    'nonmaximum_supression_radius', 8, ...
+    'num_keypoints', 1000, ...
+    'nonmaximum_supression_radius', 15, ...
     'descriptor_radius', 9,...
-    'match_lambda', 5);
+    'match_lambda', 7);
 
 [R1, T1, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
 % state 
 prev_state = struct('pt_cloud', pt_cloud, ...
                     'matched_kp', keypoints_r, ...
-                    'corr2d3d', 1 : size(keypoints_r, 2), ...
                     'candidate_kp', [], ...
                     'kp_track_start', [], ...
                     'kp_pose_start', []);
+                
+Ts = T1;
 
 %% Continuous operation
+
+%Global config
+debug = true; %enable debug data collection
+playback_mode = false; %save frames to trace errors, requres active debug mode
+plot_mode = true; 
+window_max_size = 20;
+
+if playback_mode
+    window = {};
+    
+    window_params = struct('window_index', 0, ...
+                        'window_size', 0, ...
+                        'window_max_size', window_max_size);
+                    
+    clearvars gui %clear this, otherwise the handle is invalid when running in ctrl+enter mode
+end
+
+Ts = [0 0 0]';
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
 for i = range
@@ -107,16 +126,51 @@ for i = range
         assert(false);
     end
     
-    [next_T, next_state ] = processFrame(next_image, prev_img, prev_state, K, params);
+    [next_T, next_state, debug_data ] = processFrame(next_image, prev_img, prev_state, K, params, ...
+        'debug', debug);  %debug enabled
+    R_pose = next_T(:,1:3)';
+    t_pose = -R_pose * next_T(:,4);
+    
+    %%%PLOT ALTERNATIVE
+    
+    
+    cameraSize = 0.1;
+    figure(100);
+    plotCamera('Location',t_pose,'Orientation',R_pose,'Size',...
+        cameraSize,'Color','r','Label',num2str(i),'Opacity',.5);
+    hold on
 
+    pcshow(next_state.pt_cloud','VerticalAxis','y','VerticalAxisDir',...
+        'down','MarkerSize',45);
+    grid on
+    %%%PLOT ALTERNATIVE END
+    
+    
     % Makes sure that plots refresh.    
+    Ts = [Ts, next_T(:,4)];
     
+    if debug && plot_mode 
+        debugPlot(ground_truth,i,next_image, next_state, ...
+            debug_data,next_T, Ts, K);
+    end
+
+    if debug && playback_mode 
+        window_params.window_index = mod(window_params.window_index, ...
+            window_params.window_max_size)+1;
+        
+        window{window_params.window_index} = struct('debug_data',debug_data, ...
+            'image', next_image, ...
+            'translations', Ts);        if window_params.window_size < 20
+            window_params.window_size = window_params.window_size+1;
+        end
+        
+        if ~exist('gui','var')
+            gui = debugGui(window,window_params, struct());
+        else
+            gui = debugGui(window,window_params, gui);
+        end
+    end
     
-    Ts = [Ts, next_T(:, 4)];
-    subplot(2,1,1);
-    plot(-Ts(1,:), -Ts(3,:), ground_truth(1:i,1), ground_truth(1:i,2));
     prev_img = next_image;
     prev_state = next_state;
-    pause(0.01);
-    waitforbuttonpress;
 end

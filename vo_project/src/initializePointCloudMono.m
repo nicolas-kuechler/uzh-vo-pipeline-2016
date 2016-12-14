@@ -92,6 +92,11 @@ else
     % find the point cloud in left camera frame
     Point_Cloud = linearTriangulation(kp0_selected, kp1_selected, ...
         K * eye(3,4),K * [R1, T1]);
+
+    in_front_of_camera = Point_Cloud(3,:) > 0;
+    Point_Cloud = Point_Cloud(:,in_front_of_camera);
+    kp0_selected = kp0_selected(:,in_front_of_camera);
+    kp1_selected = kp1_selected(:,in_front_of_camera);
     
     % get reprojection error of point cloud into right image
     kp1_reprojected = reprojectPoints(Point_Cloud,[R1, T1],K);

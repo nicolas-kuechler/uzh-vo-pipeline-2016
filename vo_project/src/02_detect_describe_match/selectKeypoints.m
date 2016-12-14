@@ -8,10 +8,17 @@ for i = 1:num
     [~, kp] = max(temp_scores(:));
     [row, col] = ind2sub(size(temp_scores), kp);
     kp = [row;col];
+    if kp(1) < r + 1 || kp(2) < r + 1
+        break;
+    end
+    
     keypoints(:, i) = kp - r;
+    
     temp_scores(kp(1)-r:kp(1)+r, kp(2)-r:kp(2)+r) = ...
         zeros(2*r + 1, 2*r + 1);
 end
+
+keypoints = keypoints(:, 1:i);
 
 keypoints = flipud(keypoints);
 end
