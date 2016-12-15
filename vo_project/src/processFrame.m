@@ -1,4 +1,4 @@
-function [ curr_T, curr_state, debug_data ] = processFrame(curr_img, prev_img, prev_state, K, params, varargin)
+function [ R, T, curr_state, debug_data ] = processFrame(curr_img, prev_img, prev_state, K, params, varargin)
 %PROCESSFRAME Determines pose of camera with next_image in frame of 
 % camera with prev_img. Determine point_cloud <-> keypoint correspondence
 % with keypoints from next image and point cloud from prev img. 
@@ -57,7 +57,7 @@ pt_cloud = pt_cloud(:,point_validity);
 
 %% Step 2: Pose Estimation
 % with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
-[curr_T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K);
+[R, T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K);
 
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
@@ -79,7 +79,7 @@ if ~isempty(candidate_kp)
 
     % Try to triangulate points (with triangulation check if possible)
     [new_pt_cloud, new_matched_kp, remain, maxAngle] = ...
-        tryTriangulate(curr_img, candidate_kp, kp_track_start, kp_pose_start, curr_T, K);
+        tryTriangulate(curr_img, candidate_kp, kp_track_start, kp_pose_start, [R,T], K, params);
     triangulation_loss = sum(1 - remain);
 
     % Remove successfully triangulated candidates
@@ -114,7 +114,8 @@ new_candidate_kp = selectKeypoints(scores, num_keypoints, params.nonmaximum_supr
 % add them to existing candidate keypoints
 candidate_kp = [candidate_kp, new_candidate_kp];
 kp_track_start = [kp_track_start, new_candidate_kp];
-kp_pose_start = [kp_pose_start, repmat(curr_T(:), 1, num_keypoints)];
+
+kp_pose_start = [kp_pose_start, repmat(reshape([R,T], 12, 1), 1, num_keypoints)];
     
 %% Write all variables to new state            
 curr_state = struct('pt_cloud', pt_cloud, ...
@@ -138,14 +139,14 @@ if debug
           'Triangulation_loss', triangulation_loss, ...
           'Max_Angle', maxAngle);
       
-       %Plot key values
-       struct('Matched', size(curr_matched_kp, 2), ...
-              'Cloud', size(pt_cloud, 2), ...
-              'Candidates', size(candidate_kp, 2), ...
-              'Candidates_added', num_keypoints, ...
-              'Tracking_loss', tracking_loss, ...
-              'Triangulation_loss', triangulation_loss, ...
-              'Max_Angle', maxAngle)
+   %Plot key values
+   struct('Matched', size(curr_matched_kp, 2), ...
+          'Cloud', size(pt_cloud, 2), ...
+          'Candidates', size(candidate_kp, 2), ...
+          'Candidates_added', num_keypoints, ...
+          'Tracking_loss', tracking_loss, ...
+          'Triangulation_loss', triangulation_loss, ...
+          'Max_Angle', maxAngle)
 else
     debug_data = struct();
 end

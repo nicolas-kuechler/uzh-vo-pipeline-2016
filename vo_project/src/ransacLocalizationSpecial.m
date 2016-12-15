@@ -1,4 +1,4 @@
-function [T, inlier_mask] = ...
+function [R, T, inlier_mask] = ...
     ransacLocalizationSpecial(query_keypoints, p_W_landmarks, K)
 % N: number of 2D->3D matches
 % query_keypoints should be 2xN
@@ -62,7 +62,8 @@ for i = 1:num_iterations
     if nnz(is_inlier) > max_num_inliers
         max_num_inliers = nnz(is_inlier);
         inlier_mask = is_inlier;
-        T = [R_C_W_guess(:,:,alt) t_C_W_guess(:,:,alt)];
+        R = R_C_W_guess(:,:,alt);
+        T = t_C_W_guess(:,:,alt);
     end
 end
 end

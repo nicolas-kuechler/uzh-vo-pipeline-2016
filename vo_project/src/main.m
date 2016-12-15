@@ -77,9 +77,10 @@ params = struct(...
     'num_keypoints', 1000, ...
     'nonmaximum_supression_radius', 15, ...
     'descriptor_radius', 9,...
-    'match_lambda', 7);
+    'match_lambda', 7, ...
+    'triangulation_angle_threshold', 2);
 
-[R1, T1, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
+[R, T, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
 % state 
 prev_state = struct('pt_cloud', pt_cloud, ...
@@ -88,7 +89,8 @@ prev_state = struct('pt_cloud', pt_cloud, ...
                     'kp_track_start', [], ...
                     'kp_pose_start', []);
                 
-Ts = T1;
+locations = [zeros(3,1), -R' * T];
+orientations = [reshape(eye(3), 9, 1), R(:)];
 
 %% Continuous operation
 
@@ -108,7 +110,6 @@ if playback_mode
     clearvars gui %clear this, otherwise the handle is invalid when running in ctrl+enter mode
 end
 
-Ts = [0 0 0]';
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
 for i = range
@@ -126,29 +127,19 @@ for i = range
         assert(false);
     end
     
-    [next_T, next_state, debug_data ] = processFrame(next_image, prev_img, prev_state, K, params, ...
+    [R, T, next_state, debug_data ] = processFrame(next_image, prev_img, prev_state, K, params, ...
         'debug', debug);  %debug enabled
-    R_pose = next_T(:,1:3)';
-    t_pose = -R_pose * next_T(:,4);
     
-    %%%PLOT ALTERNATIVE
-    
-    
-    cameraSize = 0.1;
-    figure(100);
-    plotCamera('Location',t_pose,'Orientation',R_pose,'Size',...
-        cameraSize,'Color','r','Label',num2str(i),'Opacity',.5);
-    hold on
-
-    pcshow(next_state.pt_cloud','VerticalAxis','y','VerticalAxisDir',...
-        'down','MarkerSize',45);
-    grid on
-    %%%PLOT ALTERNATIVE END
-    
+    % collect orientations and locations
+    orientations = [orientations, R(:)];
+    locations = [locations, -R' * T];
     
     % Makes sure that plots refresh.    
     pause(0.01)
     
+    % raffi's code (regenerate from commit afaa7ba
+    % (...)
+        
     prev_img = next_image;
     prev_state = next_state;
 end
