@@ -14,5 +14,8 @@ i = size(orientation,2);
         'down','MarkerSize',45);    
     plot3(location(1,end-plot_last:end),location(2,end-plot_last:end), location(3,end-plot_last:end))
     grid on
+    view([0,-1,0])
+    lims = [location(:,end)' - 5; location(:,end)' + 5];
+    axis(lims(:));
     hold off
 end
