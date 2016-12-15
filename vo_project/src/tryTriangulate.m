@@ -42,6 +42,21 @@ for i = 1 : num_kp
         new_3d_pt = linearTriangulation(candidates_start(:, i), ...
             candidates_current(:, i), K * T_i ,K * T);
         
+        %% MATLAB Comparison
+        cameraParams = cameraParameters('IntrinsicMatrix',K');
+        orientation1 = T_i(:,1:3);
+        location1 = T_i(:,1:3)'*T_i(:,4);
+        cameraMatrix1 = cameraMatrix(cameraParams,orientation1,location1);
+        
+        orientation2 = T(:,1:3);
+        location2 = T(:,1:3)'*T(:,4);
+        cameraMatrix2 = cameraMatrix(cameraParams,orientation2,location2);
+        
+        %R', -t*R'
+        worldPoint = triangulate(candidates_start(:, i)',candidates_current(:, i)',cameraMatrix1,cameraMatrix2)
+        new_3d_pt = worldPoint';
+        %% 
+        
         % transform into current camera frame
         new_3d_pt_camera_frame = T(:,1:3)*new_3d_pt + T(:,4);
         
