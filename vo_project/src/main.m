@@ -147,29 +147,7 @@ for i = range
     
     
     % Makes sure that plots refresh.    
-    Ts = [Ts, next_T(:,4)];
-    
-    if debug && plot_mode 
-        debugPlot(ground_truth,i,next_image, next_state, ...
-            debug_data,next_T, Ts, K);
-    end
-
-    if debug && playback_mode 
-        window_params.window_index = mod(window_params.window_index, ...
-            window_params.window_max_size)+1;
-        
-        window{window_params.window_index} = struct('debug_data',debug_data, ...
-            'image', next_image, ...
-            'translations', Ts);        if window_params.window_size < 20
-            window_params.window_size = window_params.window_size+1;
-        end
-        
-        if ~exist('gui','var')
-            gui = debugGui(window,window_params, struct());
-        else
-            gui = debugGui(window,window_params, gui);
-        end
-    end
+    pause(0.01)
     
     prev_img = next_image;
     prev_state = next_state;
