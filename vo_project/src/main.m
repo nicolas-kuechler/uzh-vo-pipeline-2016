@@ -134,6 +134,9 @@ for i = range
     orientations = [orientations, R(:)];
     locations = [locations, -R' * T];
     
+    %%% PLOT
+    plotTrajectory(locations, orientations, next_state.pt_cloud, 20);
+    
     % Makes sure that plots refresh.    
     pause(0.01)
     
