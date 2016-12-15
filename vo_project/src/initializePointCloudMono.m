@@ -105,7 +105,7 @@ else
 end
 
 %% DEBUG: (delete after testing)
-debug = 1;
+debug = false;
 
 if(debug)
     imshow(img0);
