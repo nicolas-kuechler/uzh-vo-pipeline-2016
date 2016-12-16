@@ -152,13 +152,13 @@ else
 end
 
 
-%% Step 2: Pose Estimation
-% with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
-[R, T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K);
-
-% remove all outliers from ransac
-curr_matched_kp = curr_matched_kp(:, inlier_mask);
-pt_cloud = pt_cloud(:, inlier_mask);
+% %% Step 2: Pose Estimation
+% % with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
+% [R, T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K);
+% 
+% % remove all outliers from ransac
+% curr_matched_kp = curr_matched_kp(:, inlier_mask);
+% pt_cloud = pt_cloud(:, inlier_mask);
 
 
 end
