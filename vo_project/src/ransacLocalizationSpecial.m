@@ -65,12 +65,15 @@ for i = 1:num_iterations
         R = R_C_W_guess(:,:,alt);
         T = t_C_W_guess(:,:,alt);
     end
+
 end
-% %ALTERNATIVE ESTIMATION with MATLAB functions
+%ALTERNATIVE ESTIMATION with MATLAB functions
 % cameraParams = cameraParameters('IntrinsicMatrix',K');
 % 
 % [worldOrientation,worldLocation, inlierIdx] = estimateWorldCameraPose(...
 %     query_keypoints',p_W_landmarks',cameraParams, 'MaxReprojectionError', 10); 
 % 
 % inlier_mask = inlierIdx';
+% R = worldOrientation;
+% T = -R*worldLocation';
 end

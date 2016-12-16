@@ -6,6 +6,7 @@ end
  
 i = size(orientation,2);
     figure(23456788);
+    subplot(1,2,1)
     cameraSize = 0.1;
     plotCamera('Location',location(:,end),'Orientation',reshape(orientation(:,end),[3 3]),'Size',...
         cameraSize,'Color','r','Label',num2str(i),'Opacity',.5);
@@ -18,4 +19,9 @@ i = size(orientation,2);
     lims = [location(:,end)' - 5; location(:,end)' + 5];
     axis(lims(:));
     hold off
+    
+    subplot(1,2,2);
+    plot3(location(1,:),location(2,:), location(3,:));
+    view([0,-1,0]);
+    axis square;
 end

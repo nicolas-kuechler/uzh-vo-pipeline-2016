@@ -99,12 +99,12 @@ end
 % TODO Check wheter good idea to select the number of keypoints
 % as a function of the currently tracked number of keypoints
 if isempty(candidates_prev)
-    num_keypoints = 50;
+    num_keypoints = 100;
     tracking_loss = 0;
     triangulation_loss = 0;
     maxAngle = 0;
 else
-    num_keypoints =  loss; % TODO Tune
+    num_keypoints =  100; % TODO Tune
 end
 scores = harris(curr_img, params.harris_patch_size, params.harris_kappa);
 scores = suppressExistingMatches(scores, [candidates_prev, curr_matched_kp], ...
@@ -115,7 +115,7 @@ new_candidate_kp = selectKeypoints(scores, num_keypoints, params.nonmaximum_supr
 candidates_prev = [candidates_prev, new_candidate_kp];
 candidates_start = [candidates_start, new_candidate_kp];
 
-candidates_start_pose = [candidates_start_pose, repmat(reshape([R,T], 12, 1), 1, num_keypoints)];
+candidates_start_pose = [candidates_start_pose, repmat(reshape([R,T], 12, 1), 1, size(new_candidate_kp,2))];
     
 %% Write all variables to new state            
 curr_state = struct('pt_cloud', pt_cloud, ...
@@ -150,5 +150,16 @@ if debug
 else
     debug_data = struct();
 end
+
+
+%% Step 2: Pose Estimation
+% with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
+[R, T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K);
+
+% remove all outliers from ransac
+curr_matched_kp = curr_matched_kp(:, inlier_mask);
+pt_cloud = pt_cloud(:, inlier_mask);
+
+
 end
 
