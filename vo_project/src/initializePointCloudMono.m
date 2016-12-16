@@ -36,7 +36,7 @@ kp0_matched = kp0(:, matches(matches ~= 0));
 
 % perform RANSAC to find best R and T through 8pt algorithm
 k = 8;
-num_iterations = 1000;
+num_iterations = 1200;
 max_num_inliers = 0;
 pixel_tolerance = 3;
 inlier_mask = [];
