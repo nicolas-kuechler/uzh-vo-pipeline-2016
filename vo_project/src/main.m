@@ -15,7 +15,7 @@ if ds == 0
     % need to set kitti_path to folder containing "00" and "poses"
     assert(exist('kitti_path', 'var') ~= 0);
     ground_truth = load([kitti_path '/poses/00.txt']);
-    ground_truth = ground_truth(:, [end-8 end]);
+%    ground_truth = ground_truth(:, [end-8 end]);
     last_frame = 4540;
     K = [7.188560000000e+02 0 6.071928000000e+02
         0 7.188560000000e+02 1.852157000000e+02
@@ -74,11 +74,11 @@ end
 params = struct(...
     'harris_patch_size', 9, ...
     'harris_kappa', 0.08, ...
-    'num_keypoints', 2000, ...
+    'num_keypoints', 800, ...
     'nonmaximum_supression_radius', 10, ...
     'descriptor_radius', 9,...
-    'match_lambda', 13, ...
-    'triangulation_angle_threshold', 6);
+    'match_lambda', 8, ...
+    'triangulation_angle_threshold', 4);
 
 [R, T, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
@@ -95,7 +95,7 @@ orientations = [reshape(eye(3), 9, 1), R(:)];
 %% Continuous operation
 
 %Global config
-debug = true; %enable debug data collection
+debug = false; %enable debug data collection
 playback_mode = false; %save frames to trace errors, requres active debug mode
 plot_mode = true; 
 window_max_size = 20;
@@ -130,11 +130,16 @@ for i = range
     [R, T, next_state, debug_data ] = processFrame(next_image, prev_img, prev_state, K, params, ...
         'debug', debug);  %debug enabled
     
+    % gt = reshape(ground_truth(i,:),[4,3])
+
     % collect orientations and locations
     orientations = [orientations, R(:)];
     locations = [locations, -R' * T];
     
     %%% PLOT
+%     figure(1);
+%     imshow(next_image);
+    
     plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
     
     % Makes sure that plots refresh.    

@@ -52,7 +52,7 @@ for i = 1 : num_kp
         location2 = T(:,4);
         cameraMatrix2 = cameraMatrix(cameraParams,orientation2,location2);
         
-        worldPoint = triangulate(candidates_current(:, i)',candidates_start(:, i)',cameraMatrix2,cameraMatrix1);
+        worldPoint= triangulate(candidates_current(:, i)',candidates_start(:, i)',cameraMatrix2,cameraMatrix1);
         new_3d_pt = worldPoint';
         %% 
         

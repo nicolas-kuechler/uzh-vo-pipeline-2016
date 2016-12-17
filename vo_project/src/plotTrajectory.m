@@ -21,7 +21,8 @@ i = size(orientation,2);
     hold off
     
     subplot(1,2,2);
-    plot3(location(1,:),location(2,:), location(3,:));
+    plot(location(1,:), location(3,:));
     view([0,-1,0]);
-    axis square;
+    lims = [-10, 10,0,50];
+    axis(lims);
 end

@@ -68,12 +68,17 @@ for i = 1:num_iterations
 
 end
 %ALTERNATIVE ESTIMATION with MATLAB functions
-% cameraParams = cameraParameters('IntrinsicMatrix',K');
-% 
-% [worldOrientation,worldLocation, inlierIdx] = estimateWorldCameraPose(...
-%     query_keypoints',p_W_landmarks',cameraParams, 'MaxReprojectionError', 10); 
-% 
-% inlier_mask = inlierIdx';
-% R = worldOrientation;
-% T = -R*worldLocation';
+cameraParams = cameraParameters('IntrinsicMatrix',K');
+
+ warningstate = warning('off','vision:ransac:maxTrialsReached');
+ 
+[worldOrientation,worldLocation, inlierIdx] = estimateWorldCameraPose(...
+    query_keypoints',p_W_landmarks',cameraParams,'MaxNumTrials', 6000, 'Confidence', 99.9, 'MaxReprojectionError', 0.8); 
+warning(warningstate)
+
+inlier_mask = inlierIdx';
+R = worldOrientation;
+T = -worldOrientation*worldLocation';
+
+
 end
