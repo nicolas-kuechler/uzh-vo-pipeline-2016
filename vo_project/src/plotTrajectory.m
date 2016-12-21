@@ -23,6 +23,8 @@ i = size(orientation,2);
     subplot(1,2,2);
     plot(location(1,:), location(3,:));
     view([0,-1,0]);
-    lims = [-10, 10,0,50];
+    zMax = max([30, max(location(3,:))+0.5]);
+    xMax = max([10, max(location(1,:))+0.5]);
+    lims = [-10, xMax,0,zMax];
     axis(lims);
 end

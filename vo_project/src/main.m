@@ -76,9 +76,10 @@ params = struct(...
     'harris_kappa', 0.08, ...
     'num_keypoints', 800, ...
     'nonmaximum_supression_radius', 10, ...
-    'descriptor_radius', 9,...
+    'descriptor_radius', 13,...  %desc radius 9,...
     'match_lambda', 8, ...
     'triangulation_angle_threshold', 4);
+
 
 [R, T, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
@@ -129,9 +130,6 @@ for i = range
     
     [R, T, next_state, debug_data ] = processFrame(next_image, prev_img, prev_state, K, params, ...
         'debug', debug);  %debug enabled
-    
-    % gt = reshape(ground_truth(i,:),[4,3])
-
     % collect orientations and locations
     orientations = [orientations, R(:)];
     locations = [locations, -R' * T];
@@ -139,7 +137,6 @@ for i = range
     %%% PLOT
 %     figure(1);
 %     imshow(next_image);
-    
     plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
     
     % Makes sure that plots refresh.    

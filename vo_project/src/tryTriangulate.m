@@ -39,8 +39,8 @@ for i = 1 : num_kp
     if Theta > params.triangulation_angle_threshold
         % if the angle is big enough triangulate a 3d point between the track
         % start key point and the current candidate key point
-        new_3d_pt = linearTriangulation(candidates_start(:, i), ...
-            candidates_current(:, i), K * T_i ,K * T);
+        %new_3d_pt = linearTriangulation(candidates_start(:, i), ...
+        %    candidates_current(:, i), K * T_i ,K * T);
         
         %% MATLAB Comparison
         cameraParams = cameraParameters('IntrinsicMatrix',K');

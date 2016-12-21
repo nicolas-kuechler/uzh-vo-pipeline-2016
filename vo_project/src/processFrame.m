@@ -49,20 +49,22 @@ candidates_start = prev_state.candidates_start;
 candidates_start_pose = prev_state.candidates_start_pose;
 
 %% Step 1: State Propagation
+tic
 [curr_matched_kp, point_validity] = propagateState(curr_matched_kp, prev_img, curr_img);
 
 % remove lost points
 curr_matched_kp = curr_matched_kp(:, point_validity);
 pt_cloud = pt_cloud(:,point_validity);
-
+toc
 %% Step 2: Pose Estimation
 % with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
+tic
 [R, T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K);
 
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
 pt_cloud = pt_cloud(:, inlier_mask);
-
+toc
 %% Step 3: Triangulating new landmarks
 loss = 0;
 
@@ -78,10 +80,12 @@ if ~isempty(candidates_prev)
     tracking_loss = sum(1 - point_validity);
 
     % Try to triangulate points (with triangulation check if possible)
+    tic
     [new_pt_cloud, new_matched_kp, remain, maxAngle] = ...
         tryTriangulate(curr_img, candidates_prev, candidates_start, candidates_start_pose, [R,T], K, params);
     triangulation_loss = sum(1 - remain);
-
+toc
+    
     % Remove successfully triangulated candidates
     candidates_prev = candidates_prev(:, remain);
     candidates_start = candidates_start(:, remain);
