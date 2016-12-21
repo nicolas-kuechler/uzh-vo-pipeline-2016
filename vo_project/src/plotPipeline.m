@@ -1,54 +1,71 @@
-function [ fig_num ] = plotPipeline( locations, state, img, fig_num, candidates_history )
+function [ fig_num ] = plotPipeline( locations, state, img, fig_num, num_candidates_history )
 %PLOTPIPELINE Summary of this function goes here
 %   Detailed explanation goes here
 
 
 candidates = state.candidates;
 matched_kp = state.matched_kp;
+pt_cloud = state.pt_cloud;
 
 
 %% Initialize figure if first iteration
 
-if fig_num == None
+if isnan(fig_num)
     fig = figure();
     fig_num = fig.Number;
+else
+    figure(fig_num);
 end
-
 %% Plot image with currently available candidates and currently matched keypoints
 
 subplot(2,4,[1,2])
 
+cla();
 imshow(img)
 hold on;
 plot(candidates(1,:),candidates(2,:),'rx', 'Linewidth', 2);
 plot(matched_kp(1,:),matched_kp(2,:),'gx', 'Linewidth', 2);
+daspect([1 1 1]);
+pbaspect([1 1 1]);
+hold off;
 
 
 
 %% Plot number of tracked landmarks over the last 20 frames
 
 subplot(2,4,5)
-
-
-
+cla();
+plot(num_candidates_history,'b-','LineWidth',2);
+pbaspect([4 5 1]);
+axis([0 20 0 1000])
 
 
 %% Plot full trajectory
 
 subplot(2,4,6)
 
+plot3(locations(1,:),locations(2,:),locations(3,:),'b-','LineWidth',2);
+view([0,-1,0]);
+daspect([4 1 5]);
+pbaspect([4 1 5]);
+hold off;
+
 
 
 %% Plot pointcloud and trajectory over the last 20 frames
 
 subplot(2,4,[3,4,7,8])
-
-
-
-
-
-
-
+plot_last = size(locations,2) - 20;
+if plot_last < 1
+    plot_last = 1;
+end
+cla();
+hold on;
+plot3(locations(1,plot_last:end),locations(2,plot_last:end),locations(3,plot_last:end),'b-','LineWidth',2);
+pcshow(pt_cloud','VerticalAxis','y','VerticalAxisDir','down','MarkerSize',45);
+view([0,-1,0]);
+pbaspect([4 1 5]);
+hold off;
 
 
 

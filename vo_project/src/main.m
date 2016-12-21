@@ -110,6 +110,9 @@ if playback_mode
     clearvars gui %clear this, otherwise the handle is invalid when running in ctrl+enter mode
 end
 
+fig_num = NaN;
+num_candidates_history = nan(1,20);
+
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
 for i = range
@@ -135,7 +138,9 @@ for i = range
     locations = [locations, -R' * T];
     
     %%% PLOT
-    plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
+%    plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
+    num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
+    fig_num = plotPipeline(locations,next_state,next_image,fig_num, num_candidates_history);
     
     % Makes sure that plots refresh.    
     pause(0.01)
