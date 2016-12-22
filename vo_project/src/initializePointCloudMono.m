@@ -38,7 +38,7 @@ kp0_matched = kp0(:, matches(matches ~= 0));
 k = 8;
 num_iterations = 1200;
 max_num_inliers = 0;
-pixel_tolerance = 3;
+pixel_tolerance = 1;
 inlier_mask = [];
     
 for i = 1:num_iterations

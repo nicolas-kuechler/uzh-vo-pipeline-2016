@@ -15,7 +15,7 @@ if ds == 0
     % need to set kitti_path to folder containing "00" and "poses"
     assert(exist('kitti_path', 'var') ~= 0);
     ground_truth = load([kitti_path '/poses/00.txt']);
-    ground_truth = ground_truth(:, [end-8 end]);
+%    ground_truth = ground_truth(:, [end-8 end]);
     last_frame = 4540;
     K = [7.188560000000e+02 0 6.071928000000e+02
         0 7.188560000000e+02 1.852157000000e+02
@@ -74,11 +74,17 @@ end
 params = struct(...
     'harris_patch_size', 9, ...
     'harris_kappa', 0.08, ...
-    'num_keypoints', 2000, ...
+    'num_keypoints', 800, ...
     'nonmaximum_supression_radius', 10, ...
-    'descriptor_radius', 9,...
-    'match_lambda', 13, ...
-    'triangulation_angle_threshold', 6);
+    'descriptor_radius', 13,...  %desc radius 9,...
+    'match_lambda', 8, ...
+    'triangulation_angle_threshold', 3,...
+    'surpress_existing_matches', 1 ,... %1 for true, 0 for false
+    'candidate_cap', 10000,...
+    'add_candidate_each_frame', 100 ,...
+    'eWCP_confidence', 99.9, ...
+    'eWCP_max_repr_error', 0.8, ...
+    'triangulate_max_repr_error', 200000000);
 
 [R, T, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
@@ -94,21 +100,10 @@ orientations = [reshape(eye(3), 9, 1), R(:)];
 
 %% Continuous operation
 
-%Global config
-debug = true; %enable debug data collection
-playback_mode = false; %save frames to trace errors, requres active debug mode
-plot_mode = true; 
-window_max_size = 20;
+fig_num = NaN;
+%ring buffer for number of candidates history
+num_candidates_history = nan(1,20);
 
-if playback_mode
-    window = {};
-    
-    window_params = struct('window_index', 0, ...
-                        'window_size', 0, ...
-                        'window_max_size', window_max_size);
-                    
-    clearvars gui %clear this, otherwise the handle is invalid when running in ctrl+enter mode
-end
 
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
@@ -127,21 +122,21 @@ for i = range
         assert(false);
     end
     
-    [R, T, next_state, debug_data ] = processFrame(next_image, prev_img, prev_state, K, params, ...
-        'debug', debug);  %debug enabled
+    [R, T, next_state, debug_data ] = processFrame(next_image, prev_img, prev_state, K, params);
     
     % collect orientations and locations
     orientations = [orientations, R(:)];
     locations = [locations, -R' * T];
     
+
     %%% PLOT
-    plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
+    %plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
+    num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
+    fig_num = plotPipeline(locations,next_state,next_image,fig_num, num_candidates_history);
+
     
     % Makes sure that plots refresh.    
     pause(0.01)
-    
-    % raffi's code (regenerate from commit afaa7ba
-    % (...)
         
     prev_img = next_image;
     prev_state = next_state;
