@@ -78,7 +78,7 @@ params = struct(...
     'nonmaximum_supression_radius', 10, ...
     'descriptor_radius', 13,...  %desc radius 9,...
     'match_lambda', 8, ...
-    'triangulation_angle_threshold', 4,...
+    'triangulation_angle_threshold', 3,...
     'surpress_existing_matches', 1 ,... %1 for true, 0 for false
     'candidate_cap', 10000,...
     'add_candidate_each_frame', 100 ,...
@@ -99,6 +99,11 @@ locations = [zeros(3,1), -R' * T];
 orientations = [reshape(eye(3), 9, 1), R(:)];
 
 %% Continuous operation
+
+fig_num = NaN;
+%ring buffer for number of candidates history
+num_candidates_history = nan(1,20);
+
 
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
@@ -123,7 +128,12 @@ for i = range
     orientations = [orientations, R(:)];
     locations = [locations, -R' * T];
     
-    plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
+
+    %%% PLOT
+    %plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
+    num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
+    fig_num = plotPipeline(locations,next_state,next_image,fig_num, num_candidates_history);
+
     
     % Makes sure that plots refresh.    
     pause(0.01)
