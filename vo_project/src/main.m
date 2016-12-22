@@ -111,6 +111,8 @@ if playback_mode
 end
 
 fig_num = NaN;
+
+%ring buffer for number of candidates history
 num_candidates_history = nan(1,20);
 
 range = (bootstrap_frames(2)+1):last_frame;
