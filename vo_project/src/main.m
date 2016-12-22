@@ -78,8 +78,13 @@ params = struct(...
     'nonmaximum_supression_radius', 10, ...
     'descriptor_radius', 13,...  %desc radius 9,...
     'match_lambda', 8, ...
-    'triangulation_angle_threshold', 4);
-
+    'triangulation_angle_threshold', 4,...
+    'surpress_existing_matches', 1 ,... %1 for true, 0 for false
+    'candidate_cap', 500,...
+    'add_candidate_each_frame', 100 ,...
+    'eWCP_confidence', 99.9, ...
+    'eWCP_max_repr_error', 0.8, ...
+    'triangulate_max_repr_error', 200000000);
 
 [R, T, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
@@ -94,22 +99,6 @@ locations = [zeros(3,1), -R' * T];
 orientations = [reshape(eye(3), 9, 1), R(:)];
 
 %% Continuous operation
-
-%Global config
-debug = false; %enable debug data collection
-playback_mode = false; %save frames to trace errors, requres active debug mode
-plot_mode = true; 
-window_max_size = 20;
-
-if playback_mode
-    window = {};
-    
-    window_params = struct('window_index', 0, ...
-                        'window_size', 0, ...
-                        'window_max_size', window_max_size);
-                    
-    clearvars gui %clear this, otherwise the handle is invalid when running in ctrl+enter mode
-end
 
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
@@ -134,16 +123,10 @@ for i = range
     orientations = [orientations, R(:)];
     locations = [locations, -R' * T];
     
-    %%% PLOT
-%     figure(1);
-%     imshow(next_image);
     plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
     
     % Makes sure that plots refresh.    
     pause(0.01)
-    
-    % raffi's code (regenerate from commit afaa7ba
-    % (...)
         
     prev_img = next_image;
     prev_state = next_state;

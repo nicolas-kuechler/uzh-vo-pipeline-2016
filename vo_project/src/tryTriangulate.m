@@ -52,7 +52,7 @@ for i = 1 : num_kp
         location2 = T(:,4);
         cameraMatrix2 = cameraMatrix(cameraParams,orientation2,location2);
         
-        worldPoint= triangulate(candidates_current(:, i)',candidates_start(:, i)',cameraMatrix2,cameraMatrix1);
+        [worldPoint, reprojectionError]= triangulate(candidates_current(:, i)',candidates_start(:, i)',cameraMatrix2,cameraMatrix1);
         new_3d_pt = worldPoint';
         %% 
         
@@ -60,7 +60,7 @@ for i = 1 : num_kp
         new_3d_pt_camera_frame = T(:,1:3)*new_3d_pt + T(:,4);
         
         % reject new 3d point if it lies behind the camera (z < 0)
-        if new_3d_pt_camera_frame(3) > 0
+        if reprojectionError(1) < params.triangulate_max_repr_error && new_3d_pt_camera_frame(3) > 0
             cloud = [cloud, new_3d_pt];
             matched_kp = [matched_kp, candidates_current(:, i)];
         end

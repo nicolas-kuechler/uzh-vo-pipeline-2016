@@ -1,5 +1,6 @@
 function [R, T, inlier_mask] = ...
-    ransacLocalizationSpecial(query_keypoints, p_W_landmarks, K)
+    ransacLocalizationSpecial(query_keypoints, p_W_landmarks, K, params)
+
 % N: number of 2D->3D matches
 % query_keypoints should be 2xN
 % p_W_landmarks should be 3xN
@@ -67,13 +68,14 @@ function [R, T, inlier_mask] = ...
 %     end
 % 
 % end
+
 %ALTERNATIVE ESTIMATION with MATLAB functions
 cameraParams = cameraParameters('IntrinsicMatrix',K');
 
  warningstate = warning('off','vision:ransac:maxTrialsReached');
  
 [worldOrientation,worldLocation, inlierIdx] = estimateWorldCameraPose(...
-    query_keypoints',p_W_landmarks',cameraParams,'MaxNumTrials', 3000, 'Confidence', 99.9, 'MaxReprojectionError', 0.8); 
+    query_keypoints',p_W_landmarks',cameraParams,'MaxNumTrials', 3000, 'Confidence', params.eWCP_confidence, 'MaxReprojectionError', params.eWCP_max_repr_error); 
 warning(warningstate)
 
 inlier_mask = inlierIdx';
