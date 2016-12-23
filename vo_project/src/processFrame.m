@@ -94,7 +94,7 @@ if ~isempty(candidates_prev)
     
     % Try to triangulate points (with triangulation check if possible)
     [new_pt_cloud, new_matched_kp, remain] = ...
-        tryTriangulate(curr_img, candidates_prev, candidates_start, candidates_start_pose, [R,T], K, params);
+        tryTriangulate(candidates_prev, candidates_start, candidates_start_pose, [R,T], K, params);
     
     
     % Remove successfully triangulated candidates
