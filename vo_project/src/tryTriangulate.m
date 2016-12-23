@@ -1,5 +1,5 @@
 function [cloud, matched_kp, remain] = ...
-    tryTriangulate(candidate_kp, kp_track_start, kp_pose_start, T, K)
+    tryTriangulate(candidates_current, candidates_start, candidates_start_pose, T, K)
 % TRYTRIANGULATE function that takes candidate keypoints (candidate_k) and
 % key points at the start of the track (kp_track_start) and triangulates
 % new 3D points if their bearing angle in between is large enough.
