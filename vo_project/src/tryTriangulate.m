@@ -20,16 +20,14 @@ remain = true(1, num_kp);
 % calculate bearing vectors (3 x L) of current candidated key points
 % defined as vector pointing from camera origin to corresponding 3D point
 candidate_kp_bearings = K \ [candidates_current; ones(1, num_kp)];
+candidate_start_bearings = K \ [candidates_start; ones(1, num_kp)];
 
 for i = 1 : num_kp
     v = candidate_kp_bearings(:, i);
     T_i = reshape(candidates_start_pose(:,i), 3, 4);
     
-    % calculate bearing vector of bearing vector of key point at track start
-    u = K \ [candidates_start(:, i); 1];
-    
     % transform track start bearing vector in current camera frame
-    u = T(:,1:3) * T_i(:, 1:3)' * u;
+    u = T(:,1:3) * T_i(:, 1:3)' * candidate_start_bearings(:, i);
     
     % calculate the angle between bearing vectors
     Theta = 180 / pi * acos(dot(u/norm(u), v/norm(v)));
