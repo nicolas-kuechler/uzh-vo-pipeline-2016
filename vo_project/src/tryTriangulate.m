@@ -1,5 +1,5 @@
 function [cloud, matched_kp, remain] = ...
-    tryTriangulate(candidates_current, candidates_start, candidates_start_pose, T, K)
+    tryTriangulate(candidates_current, candidates_start, candidates_start_pose, T, K, params)
 % TRYTRIANGULATE function that takes candidate keypoints (candidate_k) and
 % key points at the start of the track (kp_track_start) and triangulates
 % new 3D points if their bearing angle in between is large enough.
@@ -53,7 +53,7 @@ for i = 1 : num_kp
         %% 
         
         % transform into current camera frame
-        new_3d_pt_camera_frame = T(:,1:3)*new_3d_pt + T(:,4);
+        new_3d_pt_camera_frame = T(:, 1:3) * new_3d_pt + T(:, 4);
         
         % reject new 3d point if it lies behind the camera (z < 0)
         if reprojectionError(1) < params.triangulate_max_repr_error && new_3d_pt_camera_frame(3) > 0
