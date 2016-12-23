@@ -47,6 +47,7 @@ curr_matched_kp = prev_state.matched_kp; % keypoints (matched with pt_cloud)
 candidates_prev = prev_state.candidates;
 candidates_start = prev_state.candidates_start;
 candidates_start_pose = prev_state.candidates_start_pose;
+prev_cam_transformation = prev_state.cam_transformation;
 
 %% Step 1: State Propagation
 [curr_matched_kp, point_validity] = propagateState(curr_matched_kp, prev_img, curr_img);
@@ -58,6 +59,23 @@ pt_cloud = pt_cloud(:,point_validity);
 %% Step 2: Pose Estimation
 % with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
 [R, T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K, params);
+
+% correct displacements that are not in the general direction of the
+% previous orientation
+curr_pose = - R * T;
+prev_pose = - prev_cam_transformation(:, 1:3) * prev_cam_transformation(:, 4);
+
+curr_heading = R(:,3);
+
+displacement = curr_pose - prev_pose;
+cosAngle = dot(curr_heading, displacement) / (norm(displacement) * norm(curr_heading));
+
+% if the pose is unrealistic correct it by projecting it in direction of
+% the heading
+if cosAngle < 0.5 % new pose outside a cone of 60 degrees left and right.
+    curr_pose = prev_pose + displacement * cosAngle;
+    T = - R' * curr_pose;
+end
 
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
@@ -75,7 +93,7 @@ if ~isempty(candidates_prev)
     candidates_start_pose = candidates_start_pose(:, point_validity);
     
     % Try to triangulate points (with triangulation check if possible)
-    [new_pt_cloud, new_matched_kp, remain, maxAngle] = ...
+    [new_pt_cloud, new_matched_kp, remain] = ...
         tryTriangulate(curr_img, candidates_prev, candidates_start, candidates_start_pose, [R,T], K, params);
     
     
@@ -112,7 +130,8 @@ curr_state = struct('pt_cloud', pt_cloud, ...
     'matched_kp', curr_matched_kp, ...
     'candidates', candidates_prev, ...
     'candidates_start', candidates_start, ...
-    'candidates_start_pose', candidates_start_pose);
+    'candidates_start_pose', candidates_start_pose, ...
+    'cam_transformation', [R, T]);
 
 assert(size(candidates_prev, 2) == size(candidates_start, 2));
 assert(size(candidates_prev, 2) == size(candidates_start_pose, 2));
