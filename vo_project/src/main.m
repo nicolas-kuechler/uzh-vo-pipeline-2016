@@ -5,6 +5,9 @@ close all;
 addpath(genpath('./'));
 rng(1);
 
+ori_errors = [];
+loc_errors = [];
+
 %% Setup
 ds = 0; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
@@ -15,7 +18,7 @@ if ds == 0
     % need to set kitti_path to folder containing "00" and "poses"
     assert(exist('kitti_path', 'var') ~= 0);
     ground_truth = load([kitti_path '/poses/00.txt']);
-%    ground_truth = ground_truth(:, [end-8 end]);
+    % ground_truth = ground_truth(:, [end-8 end]);
     last_frame = 4540;
     K = [7.188560000000e+02 0 6.071928000000e+02
         0 7.188560000000e+02 1.852157000000e+02
@@ -132,8 +135,8 @@ for i = range
     % align trajectories
     [aligned_locations, loc_error, ori_error] = alignEstimateToGroundTruth(...
         ground_truth(1:i, :), locations, orientations);
-    average_loc_error = loc_error / i;
-    average_ori_error = ori_error / i;
+    ori_errors = [ori_errors, loc_error / i];
+    loc_errors = [loc_errors, ori_error / i];
 
     %%% PLOT
     %plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
