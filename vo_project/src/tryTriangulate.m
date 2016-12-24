@@ -38,7 +38,7 @@ tri = angles > params.triangulation_angle_threshold;
 %% MATLAB Comparison
 cameraParams = cameraParameters('IntrinsicMatrix',K');
 new_3d_pt = zeros(3, sum(tri));
-repr_Errors = zeros(3, sum(tri));
+repr_Errors = zeros(1, sum(tri));
 triangulation_indices = find(tri); 
 counter = 1;
 
@@ -61,7 +61,7 @@ z_mask = z_component > 0;
 r_mask = repr_Errors < params.triangulate_max_repr_error;
 
 % extract all points and keypoints and construct remain vector
-cloud = new_3d_pt(z_mask & r_mask);
+cloud = new_3d_pt(:, z_mask & r_mask);
 matched_kp = candidates_current(:, triangulation_indices(z_mask & r_mask));
 
 remain = ~tri;

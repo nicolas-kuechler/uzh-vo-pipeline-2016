@@ -77,6 +77,7 @@ if cosAngle < 0.5 % new pose outside a cone of 60 degrees left and right.
     T_plot = - R * curr_pose;
 else
     T_plot = T;
+end
 
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
