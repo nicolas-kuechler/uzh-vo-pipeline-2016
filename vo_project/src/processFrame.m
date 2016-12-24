@@ -50,13 +50,16 @@ candidates_start_pose = prev_state.candidates_start_pose;
 prev_cam_transformation = prev_state.cam_transformation;
 
 %% Step 1: State Propagation
+tic;
 [curr_matched_kp, point_validity] = propagateState(curr_matched_kp, prev_img, curr_img);
 
 % remove lost points
 curr_matched_kp = curr_matched_kp(:, point_validity);
 pt_cloud = pt_cloud(:,point_validity);
+disp(['State Propagation took ' num2str(toc) ' seconds']);
 
 %% Step 2: Pose Estimation
+tic;
 % with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
 [R, T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K, params);
 
@@ -65,16 +68,19 @@ pt_cloud = pt_cloud(:,point_validity);
 curr_pose = - R' * T;
 prev_pose = - prev_cam_transformation(:, 1:3)' * prev_cam_transformation(:, 4);
 
-heading = prev_cam_transformation(:,3);
+heading1 = prev_cam_transformation(:,3);
+heading2 = R(:,3);
 
 displacement = curr_pose - prev_pose;
-cosAngle = dot(heading, displacement) / norm(displacement);
+angle1 = 180 / pi * acos(dot(heading1, displacement) / norm(displacement));
+angle2 = 180 / pi * acos(dot(heading2, displacement) / norm(displacement));
+angle3 = 180 / pi * acos(dot(heading1, heading2));
 
 % if the pose is unrealistic correct it by projecting it in direction of
 % the heading
-if cosAngle < 0.5 % new pose outside a cone of 60 degrees left and right.
-    curr_pose = prev_pose + heading * norm(displacement) * cosAngle;
-    T_plot = - R * curr_pose;
+
+if abs(angle3 - angle1 - angle2) < 15 % new pose outside a cone of 110 degrees left and right.
+    T_plot = - R * prev_pose;
 else
     T_plot = T;
 end
@@ -82,8 +88,11 @@ end
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
 pt_cloud = pt_cloud(:, inlier_mask);
+t = toc;
+disp(['Pose Estimation took ' num2str(toc) ' seconds']);
 
 %% Step 3: Triangulating new landmarks
+tic;
 if ~isempty(candidates_prev)
     
     % Track candidate keypoints
@@ -108,8 +117,11 @@ if ~isempty(candidates_prev)
     pt_cloud = [pt_cloud, new_pt_cloud];
     curr_matched_kp = [curr_matched_kp, new_matched_kp];
 end
+t = toc;
+disp(['Triangulating new Landmarks took ' num2str(toc) ' seconds']);
 
 %% Establish new keypoint candidates for current frame
+tic;
 if  size(candidates_prev,2) <= params.candidate_cap
     
     num_keypoints =  params.add_candidate_each_frame;
@@ -127,6 +139,9 @@ if  size(candidates_prev,2) <= params.candidate_cap
     
     candidates_start_pose = [candidates_start_pose, repmat(reshape([R,T], 12, 1), 1, size(new_candidate_kp,2))];
 end
+t = toc;
+disp(['New Candidate finding took ' num2str(toc) ' seconds']);
+
 %% Write all variables to new state
 curr_state = struct('pt_cloud', pt_cloud, ...
     'matched_kp', curr_matched_kp, ...

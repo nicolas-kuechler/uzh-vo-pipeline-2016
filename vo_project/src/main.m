@@ -85,8 +85,8 @@ params = struct(...
     'surpress_existing_matches', 1 ,... %1 for true, 0 for false
     'candidate_cap', 10000,...
     'add_candidate_each_frame', 100 ,...
-    'eWCP_confidence', 99.9, ...
-    'eWCP_max_repr_error', 0.8, ...
+    'eWCP_confidence', 99.0, ...
+    'eWCP_max_repr_error', 1, ...
     'triangulate_max_repr_error', 200000000);
 
 [R, T, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
@@ -125,18 +125,18 @@ for i = range
     else
         assert(false);
     end
-    
+    tic;
     [R, T, next_state, debug_data ] = processFrame(next_image, prev_img, prev_state, K, params);
-    
+    disp(['ProcessFrame took: ' num2str(toc) ' seconds']);
     % collect orientations and locations
     orientations = [orientations, R(:)];
     locations = [locations, -R' * T];
     
     % align trajectories
-    [aligned_locations, loc_error, ori_error] = alignEstimateToGroundTruth(...
-        ground_truth(1:i, :), locations, orientations);
-    ori_errors = [ori_errors, loc_error / i];
-    loc_errors = [loc_errors, ori_error / i];
+%     [aligned_locations, loc_error, ori_error] = alignEstimateToGroundTruth(...
+%         ground_truth(1:i, :), locations, orientations);
+%     ori_errors = [ori_errors, loc_error / i];
+%     loc_errors = [loc_errors, ori_error / i];
 
     %%% PLOT
     %plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
