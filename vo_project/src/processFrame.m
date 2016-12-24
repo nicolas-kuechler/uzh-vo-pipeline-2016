@@ -1,4 +1,4 @@
-function [ R, T, curr_state, debug_data ] = processFrame(curr_img, prev_img, prev_state, K, params, varargin)
+function [ R, T_plot, curr_state, debug_data ] = processFrame(curr_img, prev_img, prev_state, K, params, varargin)
 %PROCESSFRAME Determines pose of camera with next_image in frame of
 % camera with prev_img. Determine point_cloud <-> keypoint correspondence
 % with keypoints from next image and point cloud from prev img.
@@ -62,20 +62,21 @@ pt_cloud = pt_cloud(:,point_validity);
 
 % correct displacements that are not in the general direction of the
 % previous orientation
-curr_pose = - R * T;
-prev_pose = - prev_cam_transformation(:, 1:3) * prev_cam_transformation(:, 4);
+curr_pose = - R' * T;
+prev_pose = - prev_cam_transformation(:, 1:3)' * prev_cam_transformation(:, 4);
 
-curr_heading = R(:,3);
+heading = prev_cam_transformation(:,3);
 
 displacement = curr_pose - prev_pose;
-cosAngle = dot(curr_heading, displacement) / (norm(displacement) * norm(curr_heading));
+cosAngle = dot(heading, displacement) / norm(displacement);
 
 % if the pose is unrealistic correct it by projecting it in direction of
 % the heading
 if cosAngle < 0.5 % new pose outside a cone of 60 degrees left and right.
-    curr_pose = prev_pose + displacement * cosAngle;
-    T = - R' * curr_pose;
-end
+    curr_pose = prev_pose + heading * norm(displacement) * cosAngle;
+    T_plot = - R * curr_pose;
+else
+    T_plot = T;
 
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
@@ -131,7 +132,7 @@ curr_state = struct('pt_cloud', pt_cloud, ...
     'candidates', candidates_prev, ...
     'candidates_start', candidates_start, ...
     'candidates_start_pose', candidates_start_pose, ...
-    'cam_transformation', [R, T]);
+    'cam_transformation', [R, T_plot]);
 
 assert(size(candidates_prev, 2) == size(candidates_start, 2));
 assert(size(candidates_prev, 2) == size(candidates_start_pose, 2));
