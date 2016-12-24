@@ -1,4 +1,4 @@
-function [ R, T_plot, curr_state, debug_data ] = processFrame(curr_img, prev_img, prev_state, K, params, varargin)
+function [ R, T, curr_state, debug_data, plot_pose ] = processFrame(curr_img, prev_img, prev_state, K, params, varargin)
 %PROCESSFRAME Determines pose of camera with next_image in frame of
 % camera with prev_img. Determine point_cloud <-> keypoint correspondence
 % with keypoints from next image and point cloud from prev img.
@@ -78,11 +78,11 @@ angle3 = 180 / pi * acos(dot(heading1, heading2));
 
 % if the pose is unrealistic correct it by projecting it in direction of
 % the heading
-
-if abs(angle3 - angle1 - angle2) < 15 % new pose outside a cone of 110 degrees left and right.
-    T_plot = - R * prev_pose;
+abs([angle3 - angle1, angle3 - angle2])
+if max(abs([angle3 - angle1, angle3 - angle2])) > 180  % new pose outside a cone of 110 degrees left and right.
+    plot_pose = false;
 else
-    T_plot = T;
+    plot_pose = true;
 end
 
 % remove all outliers from ransac
@@ -148,7 +148,7 @@ curr_state = struct('pt_cloud', pt_cloud, ...
     'candidates', candidates_prev, ...
     'candidates_start', candidates_start, ...
     'candidates_start_pose', candidates_start_pose, ...
-    'cam_transformation', [R, T_plot]);
+    'cam_transformation', [R, T]);
 
 assert(size(candidates_prev, 2) == size(candidates_start, 2));
 assert(size(candidates_prev, 2) == size(candidates_start_pose, 2));
