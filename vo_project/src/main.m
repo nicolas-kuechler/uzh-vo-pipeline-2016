@@ -96,8 +96,8 @@ prev_state = struct('pt_cloud', pt_cloud, ...
                     'candidates_start', [], ...
                     'candidates_start_pose', []);
                 
-locations = [zeros(3,1), -R' * T];
-orientations = [reshape(eye(3), 9, 1), R(:)];
+locations = [zeros(3,1), -R' * T / 2, -R' * T];
+orientations = [reshape(eye(3), 9, 1), R(:), R(:)];
 
 %% Continuous operation
 
