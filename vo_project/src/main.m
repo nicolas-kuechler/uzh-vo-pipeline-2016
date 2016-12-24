@@ -129,6 +129,11 @@ for i = range
     orientations = [orientations, R(:)];
     locations = [locations, -R' * T];
     
+    % align trajectories
+    [aligned_locations, loc_error, ori_error] = alignEstimateToGroundTruth(...
+        ground_truth(1:i, :), locations, orientations);
+    average_loc_error = loc_error / i;
+    average_ori_error = ori_error / i;
 
     %%% PLOT
     %plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
