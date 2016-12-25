@@ -89,15 +89,21 @@ params = struct(...
     'eWCP_max_repr_error', 1, ...
     'triangulate_max_repr_error', 200000000);
 
-[R, T, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
+[R, T, repr_error, pt_cloud, keypoints_l, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
 % state 
+tau1 = zeros(6, 1);
+tau2 = HomogMatrix2twist([R, T; 0, 0, 0, 1]);
+n = 2; m = size(pt_cloud, 2); k1 = m; k2 = m;
 prev_state = struct('pt_cloud', pt_cloud, ...
                     'matched_kp', keypoints_r, ...
                     'cam_transformation', [R, T], ...
                     'candidates', [], ...
                     'candidates_start', [], ...
-                    'candidates_start_pose', []);
+                    'candidates_start_pose', [], ...
+                    'hidden_state', [tau1', tau2', pt_cloud(:)'], ...
+                    'observations', [2, m, k1, keypoints_l(:)', 1:m, ...
+                                           k2, keypoints_r(:)', 1:m]);
                 
 locations = [zeros(3,1), -R' * T / 2, -R' * T];
 orientations = [reshape(eye(3), 9, 1), R(:), R(:)];
@@ -125,9 +131,31 @@ for i = range
     else
         assert(false);
     end
-    tic;
+    
+    if mod(i, 7) == 0
+        hidden_state = runBA(next_state.hidden_state, next_state.observations, K);
+        n = next_state.observations(1);
+        m = next_state.observations(2);
+        
+        % update existing trajectory
+        [BAlocations, BAorientations, BAland_marks] = parse_hidden_state(hidden_state, n, m);
+        locations(:, end - n + 1 : end) = BAlocations;
+        BAorientations(:, end - n + 1 : end) = BAorientations;
+        
+        % update previous state
+        k_last_frame = size(prev_state.pt_cloud, 2);
+        l_last_frame = next_state.observations(end - k_last_frame + 1 : end);
+        prev_state.pt_cloud =  BAland_marks(:, l_last_frame);
+        prev_R = reshape(BAorientations(:, end), 3, 3);
+        prev_T = - prev_R * BAlocations(:, end);
+        prev_state.cam_transformation = [prev_R, prev_T];
+        
+        prev_state.observations = [];
+        prev_state.hidden_state = [];
+    end
+        
     [R, T, next_state, debug_data, plot_pose ] = processFrame(next_image, prev_img, prev_state, K, params);
-    disp(['ProcessFrame took: ' num2str(toc) ' seconds']);
+    
     % collect orientations and locations
     orientations = [orientations, R(:)];
     if plot_pose
