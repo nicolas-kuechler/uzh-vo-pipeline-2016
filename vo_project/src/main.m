@@ -2,7 +2,11 @@ function[] = main(override_sim_params, override_env_params)
 
 
 clc;
-clear all;
+if exist('override_env_params') ~= 1 &&  exist('override_sim_params')  ~= 1
+   disp('Clearing whole workspace') 
+   clear all;
+end
+
 close all;
 
 addpath(genpath('./'));
@@ -100,27 +104,28 @@ params = struct(...
 
 env_params = struct(...
     'plot_pipeline', false, ...
-    'max_frames', 100, ...
+    'max_frames', 10, ...
     'console_log_durations', false, ...
     'console_log_framenumber', false, ...
-    'csv_durations', true, ...
-    'csv_file_name', 'out.csv');
+    'csv_durations', false, ...
+    'csv_errors', false, ...
+    'csv_file_identifier', 'noname');
 
 
 %override params when this script is run as function from another
 %environment
 
 if exist('override_sim_params') == 1
-    fields = fieldnames(override_params);
+    fields = fieldnames(override_sim_params);
     for i=1:numel(fields)
-      params.(fields{i}) =   override_sim_params.(fields{i})
+      params.(fields{i}) =   override_sim_params.(fields{i});
     end
 end
 
 if exist('override_env_params') == 1
-    fields = fieldnames(override_params);
+    fields = fieldnames(override_env_params);
     for i=1:numel(fields)
-      env_params.(fields{i}) =   override_env_params.(fields{i})
+      env_params.(fields{i}) =   override_env_params.(fields{i});
     end
 end
 
@@ -155,6 +160,12 @@ end
 if (env_params.csv_durations)
     all_durations = zeros(length(range),5);
 end
+
+%preallocate error matrix
+if(env_params.csv_errors)
+    all_errors = zeros(length(range),4);
+end
+
 
 prev_img = img1;
 for i = range
@@ -212,22 +223,23 @@ for i = range
         all_durations(i,:) = [duration_data,frame_processing_time];
     end
     
-    
-    % collect orientations and locations
-    orientations = [orientations, R(:)];
-    if plot_pose
-        locations = [locations, -R' * T];
-    else
-        locations = [locations, locations(:, end)];
-    end
-    % align trajectories
-%     [aligned_locations, loc_error, ori_error] = alignEstimateToGroundTruth(...
-%         ground_truth(1:i, :), locations, orientations);
-%     ori_errors = [ori_errors, loc_error / i];
-%     loc_errors = [loc_errors, ori_error / i];
+    if(env_params.csv_errors)
+        % collect orientations and locations
+        orientations = [orientations, R(:)];
+        if plot_pose
+            locations = [locations, -R' * T];
+        else
+            locations = [locations, locations(:, end)];
+        end
 
-    %%% PLOT
-    %plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
+        % align trajectories
+        [aligned_locations, loc_error, ori_error] = alignEstimateToGroundTruth(...
+            ground_truth(1:i, :), locations, orientations);
+
+        % PLOT
+        % plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
+         all_errors(i,:) = [loc_error, ori_error, loc_error / i, ori_error / i];
+    end
 
     if(env_params.plot_pipeline)
         num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
@@ -242,7 +254,18 @@ for i = range
 end
 
 if(env_params.csv_durations)
-    csvwrite(env_params.csv_file_name, all_durations);
+    csvwrite(strcat(env_params.csv_file_identifier,'_durations.csv'), all_durations);
+end
+
+if(env_params.csv_errors)
+    csvwrite(strcat(env_params.csv_file_identifier,'_errors.csv'), all_errors);
+end
+
+if(env_params.csv_durations || env_params.csv_errors)
+    json = savejson(struct('params', params, 'env_params', env_params));
+    file = fopen(strcat(env_params.csv_file_identifier,'_config.json'),'w');
+    fprintf(file,json);
+    fclose(file);
 end
 
 
