@@ -1,3 +1,6 @@
+function[] = main(override_sim_params, override_env_params)
+
+
 clc;
 clear all;
 close all;
@@ -8,11 +11,13 @@ rng(1);
 ori_errors = [];
 loc_errors = [];
 
-%% Setup
+%% Setup        % Makes sure that plots refresh.    
+        pause(0.01)
 ds = 0; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
 malaga_path = '../data/malaga-urban-dataset-extract-07';
 parking_path = '../data/parking';
+
 
 if ds == 0
     % need to set kitti_path to folder containing "00" and "poses"
@@ -29,7 +34,10 @@ elseif ds == 1
     images = dir([malaga_path ...
         '/malaga-urban-dataset-extract-07_rectified_800x600_Images']);
     left_images = images(3:2:end);
-    last_frame = length(left_images);
+    last_frame = length(left_images);fields = fieldnames(override_params);
+    for i=1:numel(fields)
+      params.(fields{i}) =   override_params.(fields{i})
+    end
     K = [621.18428 0 404.0076
         0 621.18428 309.05989
         0 0 1];
@@ -89,6 +97,34 @@ params = struct(...
     'eWCP_max_repr_error', 1, ...
     'triangulate_max_repr_error', 200000000);
 
+
+env_params = struct(...
+    'plot_pipeline', false, ...
+    'max_frames', 100, ...
+    'console_log_durations', false, ...
+    'console_log_framenumber', false, ...
+    'csv_durations', true, ...
+    'csv_file_name', 'out.csv');
+
+
+%override params when this script is run as function from another
+%environment
+
+if exist('override_sim_params') == 1
+    fields = fieldnames(override_params);
+    for i=1:numel(fields)
+      params.(fields{i}) =   override_sim_params.(fields{i})
+    end
+end
+
+if exist('override_env_params') == 1
+    fields = fieldnames(override_params);
+    for i=1:numel(fields)
+      env_params.(fields{i}) =   override_env_params.(fields{i})
+    end
+end
+
+
 [R, T, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
 % state 
@@ -108,11 +144,25 @@ fig_num = NaN;
 %ring buffer for number of candidates history
 num_candidates_history = nan(1,20);
 
+if env_params.max_frames < last_frame
+    range = (bootstrap_frames(2)+1):env_params.max_frames;
+else
+    range = (bootstrap_frames(2)+1):last_frame;
+end
 
-range = (bootstrap_frames(2)+1):last_frame;
+
+%preallocate duration matrix
+if (env_params.csv_durations)
+    all_durations = zeros(length(range),5);
+end
+
 prev_img = img1;
 for i = range
-    fprintf('\n\nProcessing frame %d\n=====================\n', i);
+    
+    if (env_params.console_log_framenumber)
+        fprintf('\n\nProcessing frame %d\n=====================\n', i);
+    end
+    
     if ds == 0
         next_image = imread([kitti_path '/00/image_0/' sprintf('%06d.png',i)]);
     elseif ds == 1
@@ -125,9 +175,44 @@ for i = range
     else
         assert(false);
     end
-    tic;
-    [R, T, next_state, debug_data, plot_pose ] = processFrame(next_image, prev_img, prev_state, K, params);
-    disp(['ProcessFrame took: ' num2str(toc) ' seconds']);
+
+    
+    %------ frame processing -------
+    %process frame default function args
+    track_duration_flag = 'false';
+    debug_flag = 'false';
+    
+    
+    if (env_params.console_log_durations || env_params.csv_durations)
+        tic;
+        track_duration_flag = 'true';
+    end
+        
+    [R, T, next_state, debug_data,duration_data, plot_pose ] = processFrame(next_image, prev_img, prev_state, K, params, ...
+        'track_duration', track_duration_flag, ...
+        'debug', debug_flag);
+    
+    %------end frame processing -------
+    if (env_params.console_log_durations || env_params.csv_durations)
+        frame_processing_time = toc;
+    end
+    
+    
+    %Log all durations recorded to console
+    if (env_params.console_log_durations)
+        disp(['State Propagation took ' num2str(duration_data(1)) ' seconds']);
+        disp(['Pose Estimation took ' num2str(duration_data(2)) ' seconds']);
+        disp(['Triangulating new Landmarks took ' num2str(duration_data(3)) ' seconds']);
+        disp(['New Candidate finding took ' num2str(duration_data(4)) ' seconds']);
+        disp(['ProcessFrame took: ' num2str(frame_processing_time) ' seconds']);
+    end
+    
+    %gather data for timings csv
+    if (env_params.csv_durations)
+        all_durations(i,:) = [duration_data,frame_processing_time];
+    end
+    
+    
     % collect orientations and locations
     orientations = [orientations, R(:)];
     if plot_pose
@@ -143,13 +228,21 @@ for i = range
 
     %%% PLOT
     %plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
-    num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
-    fig_num = plotPipeline(locations,next_state,next_image,fig_num, num_candidates_history);
 
-    
-    % Makes sure that plots refresh.    
-    pause(0.01)
+    if(env_params.plot_pipeline)
+        num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
+        fig_num = plotPipeline(locations,next_state,next_image,fig_num, num_candidates_history);
+
+        % Makes sure that plots refresh.    
+        pause(0.01);
+    end
         
     prev_img = next_image;
     prev_state = next_state;
 end
+
+if(env_params.csv_durations)
+    csvwrite(env_params.csv_file_name, all_durations);
+end
+
+
