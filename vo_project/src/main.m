@@ -89,13 +89,14 @@ params = struct(...
     'add_candidate_each_frame', 100 ,...
     'eWCP_confidence', 99.0, ...
     'eWCP_max_repr_error', 1, ...
-    'triangulate_max_repr_error', 200000000);
+    'triangulate_max_repr_error', 200000000, ...
+    'runBA', true);
 
 [R, T, repr_error, pt_cloud, keypoints_l, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
 % state 
 tau1 = zeros(6, 1);
-tau2 = HomogMatrix2twist([R, T; 0, 0, 0, 1]);
+tau2 = HomogMatrix2twist([R', -R' * T; 0, 0, 0, 1]);
 n = 2; m = size(pt_cloud, 2); k1 = m; k2 = m;
 prev_state = struct('pt_cloud', pt_cloud, ...
                     'matched_kp', keypoints_r, ...
@@ -107,15 +108,14 @@ prev_state = struct('pt_cloud', pt_cloud, ...
                     'observations', [2, m, k1, keypoints_l(:)', 1:m, ...
                                            k2, keypoints_r(:)', 1:m]);
                 
-locations = [zeros(3,1), -R' * T / 2, -R' * T];
-orientations = [reshape(eye(3), 9, 1), R(:), R(:)];
+locations = [zeros(3,1), -R' * T];
+orientations = [reshape(eye(3), 9, 1), R(:)];
 
 %% Continuous operation
 
 fig_num = NaN;
 %ring buffer for number of candidates history
 num_candidates_history = nan(1,20);
-
 
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
