@@ -66,9 +66,9 @@ if ~isempty(candidates_prev)
     candidates_start_pose = candidates_start_pose(:, point_validity);
     
     % Try to triangulate points
-    flag = size(curr_matched_kp, 2) > 100;
+    kp_critical = size(curr_matched_kp, 2) < 100;
     [new_pt_cloud, new_matched_kp, remain] = ...
-        tryTriangulate(candidates_prev, candidates_start, candidates_start_pose, [R,T], K, flag, params);
+        tryTriangulate(candidates_prev, candidates_start, candidates_start_pose, [R,T], K, ~kp_critical, params);
     
     % Remove successfully triangulated candidates
     candidates_prev = candidates_prev(:, remain);
@@ -80,6 +80,7 @@ if ~isempty(candidates_prev)
     curr_matched_kp = [curr_matched_kp, new_matched_kp];
 else
     new_pt_cloud = [];
+    kp_critical = true;
 end
 
 %% Update Hidden State and Observations
@@ -117,7 +118,7 @@ if  size(candidates_prev,2) <= params.candidate_cap
     num_keypoints =  params.add_candidate_each_frame;
 
     scores = harris(curr_img, params.harris_patch_size, params.harris_kappa);
-    if params.surpress_existing_matches == 1
+    if kp_critical || params.surpress_existing_matches == 1 
         scores = suppressExistingMatches(scores, [candidates_prev, curr_matched_kp], ...
             params.nonmaximum_supression_radius);
     end
