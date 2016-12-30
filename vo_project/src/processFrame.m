@@ -65,9 +65,10 @@ if ~isempty(candidates_prev)
     candidates_start = candidates_start(:, point_validity);
     candidates_start_pose = candidates_start_pose(:, point_validity);
     
-    % Try to triangulate points (with triangulation check if possible)
+    % Try to triangulate points
+    flag = size(curr_matched_kp, 2) > 100;
     [new_pt_cloud, new_matched_kp, remain] = ...
-        tryTriangulate(candidates_prev, candidates_start, candidates_start_pose, [R,T], K, params);
+        tryTriangulate(candidates_prev, candidates_start, candidates_start_pose, [R,T], K, flag, params);
     
     % Remove successfully triangulated candidates
     candidates_prev = candidates_prev(:, remain);
