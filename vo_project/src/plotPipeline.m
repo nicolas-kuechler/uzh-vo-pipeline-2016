@@ -1,4 +1,4 @@
-function [ fig_num ] = plotPipeline( locations, state, img, fig_num, num_candidates_history )
+function [ fig_num ] = plotPipeline( locations, state, img, fig_num, num_candidates_history, num_matched_kp_history )
 %PLOTPIPELINE Summary:
 %   Creates 4 plots:
 %   - current image with available candidate and tracked keypoints
@@ -41,7 +41,7 @@ subplot(2,4,[1,2])
 cla();
 imshow(img)
 hold on;
-plot(candidates(1,:),candidates(2,:),'rx', 'Linewidth', 2);
+plot(candidates(1,:),candidates(2,:),'bx', 'Linewidth', 2, 'Markersize', 3);
 plot(matched_kp(1,:),matched_kp(2,:),'gx', 'Linewidth', 2);
 daspect([1 1 1]);
 pbaspect([1 1 1]);
@@ -49,16 +49,17 @@ title('Current Image');
 hold off;
 
 
-
 %% Plot number of tracked landmarks over the last 20 frames
-
 subplot(2,4,5)
 cla();
-plot(num_candidates_history,'b-','LineWidth',2);
+hold on;
+plot(num_matched_kp_history,'g-','LineWidth',2);
+plot(num_candidates_history,'b-.','LineWidth',2);
 pbaspect([4 5 1]);
 axis([0 20 0 1000]);
-title('Tracked Landmarks');
-
+title('Tracked key points');
+legend('Landmarks', 'Candidates');
+hold off;
 
 %% Plot full trajectory
 
@@ -71,10 +72,7 @@ pbaspect([4 1 5]);
 title('Full Trajectory');
 hold off;
 
-
-
 %% Plot pointcloud and trajectory over the last 20 frames
-
 subplot(2,4,[3,4,7,8])
 plot_last = size(locations,2) - 20;
 if plot_last < 1
