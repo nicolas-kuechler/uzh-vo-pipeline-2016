@@ -56,8 +56,10 @@ end
 
 %% Bootstrap
 % need to set bootstrap_frames
-bootstrap_frames = [000001 000003];           
-                
+bootstrap_frames = [000001 000003]; 
+if exist('ground_truth')
+    ground_truth(2, :) = [];
+end
 
 if ds == 0
     img0 = imread([kitti_path '/00/image_0/' ...
@@ -101,28 +103,35 @@ params = struct(...
     'add_candidate_each_frame', 100 ,...
     'eWCP_confidence', 99.0, ...
     'eWCP_max_repr_error', 1, ...
-    'triangulate_max_repr_error', 200000000);
+    'triangulate_max_repr_error', 200000000, ...
+    'runBA', true);
 
 
-[R, T, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
+[R, T, repr_error, pt_cloud, keypoints_l, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
+
 
 % state 
+tau1 = zeros(6, 1);
+tau2 = HomogMatrix2twist([R', -R' * T; 0, 0, 0, 1]);
+n = 2; m = size(pt_cloud, 2); k1 = m; k2 = m;
 prev_state = struct('pt_cloud', pt_cloud, ...
                     'matched_kp', keypoints_r, ...
                     'cam_transformation', [R, T], ...
                     'candidates', [], ...
                     'candidates_start', [], ...
-                    'candidates_start_pose', []);
+                    'candidates_start_pose', [], ...
+                    'hidden_state', [tau1', tau2', pt_cloud(:)'], ...
+                    'observations', [2, m, k1, keypoints_l(:)', 1:m, ...
+                                           k2, keypoints_r(:)', 1:m]);
                 
-locations = [zeros(3,1), -R' * T / 2, -R' * T];
-orientations = [reshape(eye(3), 9, 1), R(:), R(:)];
+locations = [zeros(3,1), -R' * T];
+orientations = [reshape(eye(3), 9, 1), R(:)];
 
 %% Continuous operation
 
 fig_num = NaN;
 %ring buffer for number of candidates history
 num_candidates_history = nan(1,20);
-
 
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
@@ -144,9 +153,62 @@ for i = range
     else
         assert(false);
     end
-    tic;
+    
+    if mod(i, 5) == 3 && params.runBA
+        % refine poses and point cloud
+        hidden_state = runBA(next_state.hidden_state, next_state.observations, K);
+        n = next_state.observations(1);
+        m = next_state.observations(2);
+        
+        % update existing trajectory
+        [BAlocations, BAorientations, BAland_marks] = parse_hidden_state(hidden_state, n, m);
+        locations(:, end - n + 1 : end) = BAlocations;
+        BAorientations(:, end - n + 1 : end) = BAorientations;
+        
+        % update previous state
+        k_last_frame = size(prev_state.pt_cloud, 2);
+        l_last_frame = next_state.observations(end - k_last_frame + 1 : end);
+        prev_state.pt_cloud =  BAland_marks(:, l_last_frame);
+        prev_R = reshape(BAorientations(:, end), 3, 3);
+        prev_T = - prev_R * locations(:, end);
+        prev_state.cam_transformation = [prev_R, prev_T];
+        
+        
+        counter = 3;
+        lis = cell(2,1);
+        counters = [0,0];
+        for j = 1 : n
+            k_i = prev_state.observations(counter);   
+            if j > n - 2
+                lis{j - n + 2} = prev_state.observations(counter + 1 + 2 * k_i : counter + 3 * k_i)';
+                counters(j - n + 2) = counter;
+            end
+            counter = counter + 1 + 3 * k_i;
+        end
+        
+        % crop landmarks to contain only points from last two observations
+        [l1, l2, point_cloud, new_m] = myCropProb(lis{1}, lis{2}, BAland_marks);
+        
+        % take first observations to overlap with the next two
+        sliding_observations = prev_state.observations(counters(1):end);
+        k1 = sliding_observations(1); 
+        O1 = sliding_observations(1 : 1 + 3 * k1);
+        O1(2 + 2 * k1 : 1 + 3 * k1) = l1;
+        
+        O2 = sliding_observations(2 + 3 * k1 : end);
+        k2 = O2(1);
+        O2(2 + 2 * k2 : 1 + 3 * k2) = l2;
+        
+        sliding_hidden_state = [prev_state.hidden_state( 6*(n - 2) + 1 : 6*n), ...
+            point_cloud];
+        
+        prev_state.observations = [2, new_m, O1, O2];
+        prev_state.hidden_state = sliding_hidden_state;
+    end
+    
+    % process next image and find next location and orientation
     [R, T, next_state, debug_data, plot_pose ] = processFrame(next_image, prev_img, prev_state, K, params);
-    disp(['ProcessFrame took: ' num2str(toc) ' seconds']);
+    
     % collect orientations and locations
     orientations = [orientations, R(:)];
     if plot_pose
@@ -160,15 +222,14 @@ for i = range
 %     ori_errors = [ori_errors, loc_error / i];
 %     loc_errors = [loc_errors, ori_error / i];
 
-    %%% PLOT
-    %plotTrajectory(locations, orientations, next_state.pt_cloud, 100);
+    % plot results
     num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
     fig_num = plotPipeline(locations,next_state,next_image,fig_num, num_candidates_history);
 
-    
     % Makes sure that plots refresh.    
     pause(0.01)
-        
+    
+    % update state
     prev_img = next_image;
     prev_state = next_state;
 end

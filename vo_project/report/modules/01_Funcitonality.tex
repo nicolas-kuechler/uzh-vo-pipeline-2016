@@ -1,1 +1,11 @@
 \chapter{Functionality of our VO Pipeline}
+The main functionality of the VO Pipeline can summarized in the following points:
+
+\begin{itemize}
+  \item Loading the datasets.
+  \item Boostrapping the first and third image from the data set. This generates an initial point cloud, corresponding matched key points and the initial camera pose of the third image. 
+  \item Process each subsequent image by tracking previous keypoints, finding the new camera pose, finding new keypoints and point clouds.
+\end{itemize}
+
+These points will be summarized in the following paragraphs.
+

@@ -20,16 +20,16 @@ function [ R, T, curr_state, debug_data, plot_pose ] = processFrame(curr_img, pr
 %                                    point
 %
 %         K: calibration matrix of camera with curr_img
+%         params: struct containing various parameters for feature
+%                 detection, matching, triangulation etc.
+%         varargin: 
 %
 % outputs: curr_state: state propagated to current time frame (same structure
 %                      as prev_state
-%          curr_T: 3D points that are in 1 to 1 correspondence
+%          T: 3D points that are in 1 to 1 correspondence
 %                            with curr_keypoints and are in frame of camera
 %                            with prev_img
-%          R_next: rotation of camera with next_img with respect to prev_img.
-%          T_next: translation of camera with next_img with respect to
-%                  prev_img.
-
+%          R: rotation of camera with next_img with respect to prev_img.
 
 %# valid parameters, and their default values
 pnames = {'debug'};
@@ -48,18 +48,17 @@ candidates_prev = prev_state.candidates;
 candidates_start = prev_state.candidates_start;
 candidates_start_pose = prev_state.candidates_start_pose;
 prev_cam_transformation = prev_state.cam_transformation;
+curr_hidden_state = prev_state.hidden_state;
+curr_observations = prev_state.observations;
 
 %% Step 1: State Propagation
-tic;
 [curr_matched_kp, point_validity] = propagateState(curr_matched_kp, prev_img, curr_img);
 
 % remove lost points
 curr_matched_kp = curr_matched_kp(:, point_validity);
 pt_cloud = pt_cloud(:,point_validity);
-disp(['State Propagation took ' num2str(toc) ' seconds']);
 
 %% Step 2: Pose Estimation
-tic;
 % with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
 [R, T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K, params);
 
@@ -88,11 +87,8 @@ end
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
 pt_cloud = pt_cloud(:, inlier_mask);
-t = toc;
-disp(['Pose Estimation took ' num2str(toc) ' seconds']);
 
 %% Step 3: Triangulating new landmarks
-tic;
 if ~isempty(candidates_prev)
     
     % Track candidate keypoints
@@ -107,7 +103,6 @@ if ~isempty(candidates_prev)
     [new_pt_cloud, new_matched_kp, remain] = ...
         tryTriangulate(candidates_prev, candidates_start, candidates_start_pose, [R,T], K, params);
     
-    
     % Remove successfully triangulated candidates
     candidates_prev = candidates_prev(:, remain);
     candidates_start = candidates_start(:, remain);
@@ -116,18 +111,46 @@ if ~isempty(candidates_prev)
     % add new 3d points and matched key points
     pt_cloud = [pt_cloud, new_pt_cloud];
     curr_matched_kp = [curr_matched_kp, new_matched_kp];
+else
+    new_pt_cloud = [];
 end
-t = toc;
-disp(['Triangulating new Landmarks took ' num2str(toc) ' seconds']);
+
+%% Update Hidden State and Observations
+if params.runBA
+    % update hidden state
+    current_tau = HomogMatrix2twist([R', -R' * T; 0, 0, 0, 1]);
+
+    curr_n = curr_observations(1);
+    hidden_taus = curr_hidden_state(1 : 6 * curr_n);
+    hidden_pt_cloud = curr_hidden_state(6 * curr_n + 1 : end);
+
+    hidden_state = [hidden_taus, current_tau', hidden_pt_cloud, new_pt_cloud(:)'];
+
+    % update observations
+    ki = size(curr_matched_kp, 2);
+
+    curr_m = curr_observations(2);
+    new_m = curr_m + size(new_pt_cloud, 2);
+
+    observations = curr_observations;
+    observations(2) = new_m;
+    observations(1) = curr_n + 1;
+
+    l = zeros(1, ki);
+    reference_landmarks = reshape([hidden_pt_cloud, new_pt_cloud(:)'], 3, new_m);
+    for i = 1 : ki
+        l(i) = find(ismember(reference_landmarks', pt_cloud(:, i)', 'rows')); 
+    end
+    observations = [observations, ki, curr_matched_kp(:)', l];
+end
 
 %% Establish new keypoint candidates for current frame
-tic;
 if  size(candidates_prev,2) <= params.candidate_cap
     
     num_keypoints =  params.add_candidate_each_frame;
 
     scores = harris(curr_img, params.harris_patch_size, params.harris_kappa);
-    if params.surpress_existing_matches==1
+    if params.surpress_existing_matches == 1
         scores = suppressExistingMatches(scores, [candidates_prev, curr_matched_kp], ...
             params.nonmaximum_supression_radius);
     end
@@ -139,8 +162,6 @@ if  size(candidates_prev,2) <= params.candidate_cap
     
     candidates_start_pose = [candidates_start_pose, repmat(reshape([R,T], 12, 1), 1, size(new_candidate_kp,2))];
 end
-t = toc;
-disp(['New Candidate finding took ' num2str(toc) ' seconds']);
 
 %% Write all variables to new state
 curr_state = struct('pt_cloud', pt_cloud, ...
@@ -148,10 +169,9 @@ curr_state = struct('pt_cloud', pt_cloud, ...
     'candidates', candidates_prev, ...
     'candidates_start', candidates_start, ...
     'candidates_start_pose', candidates_start_pose, ...
-    'cam_transformation', [R, T]);
-
-assert(size(candidates_prev, 2) == size(candidates_start, 2));
-assert(size(candidates_prev, 2) == size(candidates_start_pose, 2));
+    'cam_transformation', [R, T], ... 
+    'hidden_state', hidden_state, ...
+    'observations', observations);
 
 %% Calcuate debug struct
 if debug
