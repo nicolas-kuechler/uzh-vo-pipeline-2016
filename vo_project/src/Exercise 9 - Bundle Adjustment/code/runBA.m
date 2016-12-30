@@ -63,7 +63,7 @@ else
 end
 
 options = optimoptions('lsqnonlin', 'MaxIterations', MaxIterations, 'JacobPattern', M, ...
-    'Display', 'iter');
+    'Display', 'iter', 'ScaleProblem', 'jacobian');
 
 % Define error function BAError
 error_function = @(hidden_state) BAError(hidden_state, observations, K, 2 * sum(ks));
