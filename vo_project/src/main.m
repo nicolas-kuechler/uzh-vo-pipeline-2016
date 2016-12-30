@@ -9,10 +9,11 @@ ori_errors = [];
 loc_errors = [];
 
 %% Setup
-ds = 0; % 0: KITTI, 1: Malaga, 2: parking
+ds = 3; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
 malaga_path = '../data/malaga-urban-dataset-extract-07';
 parking_path = '../data/parking';
+waedi_path = '../data/waedi';
 
 if ds == 0
     % need to set kitti_path to folder containing "00" and "poses"
@@ -41,6 +42,14 @@ elseif ds == 2
      
     ground_truth = load([parking_path '/poses.txt']);
     ground_truth = ground_truth(:, [end-8 end]);
+elseif ds == 3
+    
+    assert(exist('waedi_path', 'var') ~= 0);
+    images = dir([waedi_path ...
+        '/images']);
+    K = [609.932619643408,0,0;0,610.173360091855,0;329.144287081628,181.258698042663,1]';
+    last_frame = 4396;
+    
 else
     assert(false);
 end
@@ -67,6 +76,11 @@ elseif ds == 2
         sprintf('/images/img_%05d.png',bootstrap_frames(1))]));
     img1 = rgb2gray(imread([parking_path ...
         sprintf('/images/img_%05d.png',bootstrap_frames(2))]));
+elseif ds == 3
+    img0 = imread([waedi_path ...
+        sprintf('/images_undistorted/waedi_%04d.png', bootstrap_frames(1))]);
+    img1 = imread([waedi_path ...
+        sprintf('/images_undistorted/waedi_%04d.png',bootstrap_frames(2))]);
 else
     assert(false);
 end
@@ -88,6 +102,7 @@ params = struct(...
     'eWCP_confidence', 99.0, ...
     'eWCP_max_repr_error', 1, ...
     'triangulate_max_repr_error', 200000000);
+
 
 [R, T, repr_error, pt_cloud, ~, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
@@ -122,6 +137,10 @@ for i = range
     elseif ds == 2
         next_image = im2uint8(rgb2gray(imread([parking_path ...
             sprintf('/images/img_%05d.png',i)])));
+    elseif ds == 3
+        next_image = im2uint8(imread([waedi_path ...
+            sprintf('/images_undistorted/waedi_%04d.png',i)]));
+        
     else
         assert(false);
     end
