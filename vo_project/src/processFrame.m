@@ -1,4 +1,4 @@
-function [ R, T, curr_state, debug_data, plot_pose ] = processFrame(curr_img, prev_img, prev_state, K, params, varargin)
+function [ R, T, curr_state] = processFrame(curr_img, prev_img, prev_state, K, params, varargin)
 %PROCESSFRAME Determines pose of camera with next_image in frame of
 % camera with prev_img. Determine point_cloud <-> keypoint correspondence
 % with keypoints from next image and point cloud from prev img.
@@ -31,23 +31,11 @@ function [ R, T, curr_state, debug_data, plot_pose ] = processFrame(curr_img, pr
 %                            with prev_img
 %          R: rotation of camera with next_img with respect to prev_img.
 
-%# valid parameters, and their default values
-pnames = {'debug'};
-dflts  = {'true'};
-
-%# parse function arguments
-[debug] = internal.stats.parseArgs(pnames, dflts, varargin{:});
-
-%# use the processed values: clr, lw, ls, txt
-%# corresponding to the specified parameters
-%# ...
-
 pt_cloud = prev_state.pt_cloud; % pt_cloud w. r. t. last key frame
 curr_matched_kp = prev_state.matched_kp; % keypoints (matched with pt_cloud)
 candidates_prev = prev_state.candidates;
 candidates_start = prev_state.candidates_start;
 candidates_start_pose = prev_state.candidates_start_pose;
-prev_cam_transformation = prev_state.cam_transformation;
 curr_hidden_state = prev_state.hidden_state;
 curr_observations = prev_state.observations;
 
@@ -61,28 +49,6 @@ pt_cloud = pt_cloud(:,point_validity);
 %% Step 2: Pose Estimation
 % with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
 [R, T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K, params);
-
-% correct displacements that are not in the general direction of the
-% previous orientation
-curr_pose = - R' * T;
-prev_pose = - prev_cam_transformation(:, 1:3)' * prev_cam_transformation(:, 4);
-
-heading1 = prev_cam_transformation(:,3);
-heading2 = R(:,3);
-
-displacement = curr_pose - prev_pose;
-angle1 = 180 / pi * acos(dot(heading1, displacement) / norm(displacement));
-angle2 = 180 / pi * acos(dot(heading2, displacement) / norm(displacement));
-angle3 = 180 / pi * acos(dot(heading1, heading2));
-
-% if the pose is unrealistic correct it by projecting it in direction of
-% the heading
-abs([angle3 - angle1, angle3 - angle2])
-if max(abs([angle3 - angle1, angle3 - angle2])) > 180  % new pose outside a cone of 110 degrees left and right.
-    plot_pose = false;
-else
-    plot_pose = true;
-end
 
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
@@ -169,25 +135,8 @@ curr_state = struct('pt_cloud', pt_cloud, ...
     'candidates', candidates_prev, ...
     'candidates_start', candidates_start, ...
     'candidates_start_pose', candidates_start_pose, ...
-    'cam_transformation', [R, T], ... 
     'hidden_state', hidden_state, ...
     'observations', observations);
-
-%% Calcuate debug struct
-if debug
-    debug_data = struct( ...
-        'curr_matched_kp', curr_matched_kp, ...
-        'Matched', size(curr_matched_kp, 2), ...
-        'Cloud', size(pt_cloud, 2), ...
-        'Candidates', size(candidates_prev, 2));
-    
-    %Plot key values
-    struct('Matched', size(curr_matched_kp, 2), ...
-        'Cloud', size(pt_cloud, 2), ...
-        'Candidates', size(candidates_prev, 2))
-else
-    debug_data = struct();
-end
 
 end
 
