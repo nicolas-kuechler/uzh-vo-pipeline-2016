@@ -1,5 +1,5 @@
 function [R, T, inlier_mask] = ...
-    ransacLocalizationSpecial(query_keypoints, p_W_landmarks, K, params)
+    ransacLocalization(query_keypoints, p_W_landmarks, K, params)
 % save camera parameters
 cameraParams = cameraParameters('IntrinsicMatrix',K');
 
