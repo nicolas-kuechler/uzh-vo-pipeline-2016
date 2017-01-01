@@ -90,7 +90,8 @@ params = struct(...
     'eWCP_confidence', 99.9, ...
     'eWCP_max_repr_error', 2, ...
     'triangulate_max_repr_error', 5, ...
-    'runBA', true);
+    'runBA', 0, ...
+    'critical_kp', 150);
 
 [R, T, repr_error, pt_cloud, keypoints_l, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
@@ -134,11 +135,11 @@ for i = range
         assert(false);
     end
     
-    if mod(i, 5) == 1 && params.runBA
+    if params.runBA && mod(i, 7) == 3
         % refine poses and point cloud
-        hidden_state = runBA(next_state.hidden_state, next_state.observations, K);
-        n = next_state.observations(1);
-        m = next_state.observations(2);
+        hidden_state = runBA(prev_state.hidden_state, prev_state.observations, K);
+        n = prev_state.observations(1);
+        m = prev_state.observations(2);
         
         % update existing trajectory
         [BAlocations, BAorientations, BAland_marks] = parse_hidden_state(hidden_state, n, m);
@@ -176,10 +177,10 @@ for i = range
     locations = [locations, -R' * T];
 
     % align trajectories
-%     [aligned_locations, loc_error, ori_error] = alignEstimateToGroundTruth(...
-%         ground_truth(1:i, :), locations, orientations);
-%     ori_errors = [ori_errors, loc_error / i];
-%     loc_errors = [loc_errors, ori_error / i];
+    [locations, loc_error, ori_error] = alignEstimateToGroundTruth(...
+        ground_truth(1:i, :), locations, orientations);
+    ori_errors = [ori_errors, loc_error / i];
+    loc_errors = [loc_errors, ori_error / i];
 
     % plot results
     num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];

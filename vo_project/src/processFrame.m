@@ -48,7 +48,7 @@ pt_cloud = pt_cloud(:,point_validity);
 
 %% Step 2: Pose Estimation
 % with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
-[R, T, inlier_mask] = ransacLocalizationSpecial(curr_matched_kp, pt_cloud, K, params);
+[R, T, inlier_mask] = ransacLocalization(curr_matched_kp, pt_cloud, K, params);
 
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
@@ -66,7 +66,7 @@ if ~isempty(candidates_prev)
     candidates_start_pose = candidates_start_pose(:, point_validity);
     
     % Try to triangulate points
-    kp_critical = size(curr_matched_kp, 2) < 100;
+    kp_critical = size(curr_matched_kp, 2) < params.critical_kp;
     [new_pt_cloud, new_matched_kp, remain] = ...
         tryTriangulate(candidates_prev, candidates_start, candidates_start_pose, [R,T], K, ~kp_critical, params);
     
@@ -110,6 +110,9 @@ if params.runBA
         l(i) = find(ismember(reference_landmarks', pt_cloud(:, i)', 'rows')); 
     end
     observations = [observations, ki, curr_matched_kp(:)', l];
+else
+    hidden_state = [];
+    observations = [];
 end
 
 %% Establish new keypoint candidates for current frame
