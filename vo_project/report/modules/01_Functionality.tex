@@ -1,0 +1,15 @@
+\chapter{Functionality of the VO Pipeline}
+The main functionality of the visual odometry pipeline includes three major parkts. These are the loading of the dataset (done in main.m), the bootstrapping of two keyframes to initialize the point cloud and camera homographies (done in initializePointCloudMono.m) and the subsequent processing of frames (done in processFrame.m).
+These points will the summarized in the following paragraphs.
+
+\section{Loading the Dataset}
+In our project we have used three openly accessible datasets that are extensively used to benchmark various vision algorithms. These include the KITTI dataset recorded in Karlsruhe, Malaga dataset recorded in Malaga and the parking garage dataset which was recorded in a parking garage. Another dataset was recorded by the others with a smartphone and tested with the visual odometry (vo - ) pipeline. More about the integration of this dataset can be found in section 3.
+
+\section{Bootstrapping}
+In order to initialize the VO pipeline we must define an initial point cloud and camera homographies. For this two key frames must be identified which in our case are image 1 and 3. In a second step keypoints in each frame are detected (Harris corner detector) and matched (using SSD of descriptor patches). In the following step the camera homographies and landmark coordinates are calculated using the eight point algorithm [ref] and while performing RANSAC. To achieve stable results RANSAC was performed with 1200 iterations and 1 pixel reprojection error as tolerance for inliers. The final landmarks and pose were calculated with all the inliers.      
+
+\section{Frame Processing}
+As described in the project description the subsequent frames are processed in a Markovian fashion, meaning that information from the previous frame is sufficient to compute all neccessary variables of the subsequent frame. 
+In processing a new frame we follow the following steps: \par
+First matched keypoints are tracked from the previous image to the next image using a KLT tracker [ref] implemented by MATLAB. As the displacement of keypoints across the image can be quite large the KLT tracker uses 3 pyramidal levels and a patch size of 31 x 31 pixels. Non-tracked key points are removed with their corresponding landmarks.\par
+In the second step the new camera homography is computed using the new 2D-3D correspondence from the tracked keypoints. This can be efficiently computed using a MATLAB function. This function uses the P3P algorithm in combination with the M-estimator sample consensus (MSAC) algorithm to remove outliers. Since only three points are used very few iterations are necessary. 
