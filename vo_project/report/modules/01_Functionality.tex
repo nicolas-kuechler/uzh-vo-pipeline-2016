@@ -1,8 +1,14 @@
 \chapter{Functionality of the VO Pipeline}
-The monocular visual odometry (VO) pipeline can be run with the file main.m. Its functionality is summarized by the following: The bootstrapping of initial key points (initializePointCloudMono.m) and processing of subsequent frames (processFrame.m). Finally, multiple views are corrected using bundle adjustment methods. If the ground truth is given a final alignment (achieved through scaling, rotation and translation) can be performed to judge the deviation from the reference. These last two points are further described in chapter 3.  
+\vspace{-10mm} 
 
 \section{Bootstrapping}
-To initialize the pipeline point cloud must be triangulated between two key frames (frame 1 and 3) and the respective camera homographies must be found. Using the Harris corner detector, key points are found in both images and matched (using the SSD of descriptor patches). In the following step the camera homography of frame 3 is found by calculating the essential matrix (since K is known) using the eight point algorithm [ref]. To arrive at a robust estimate RANSAC is performed with a reprojection error tolerance of ?? and 1200 iterations. The final landmarks and pose were calculated with all the inliers.
+The goal of the bootstrapping phase is to initialize a 3D point cloud and to estimate the rotation and translation between two manually selected key frames (frame 1 and 3).
+
+At the beginning \emph{harris features} are detected and matched from both key frames and then the \emph{8-point algorithm} in combination with \emph{RANSAC} is applied. 
+
+In the \emph{8-point algorithm} we estimate the \emph{essential matrix} from eight point correspondences selected uniform at random from the matched features. After recovering rotation and translation, they are used to triangulate a 3D point cloud. In order to validate the pose estimate these 3D points are re-projected and classified as outliers if they exceed a certain re-projection error threshold calculated with \emph{SSD}. 
+
+After 1'200 iterations of \emph{RANSAC}, the pose estimate with the highest number of inliers is kept. All of these inliers are then used in the \emph{8-point algorithm} to refine the pose by minimizing the overdetermined solution. The final initial 3D point cloud is then triangulated with the refined pose.
 
 \section{Continuous Operation}
 As subsequent frames are processed in a Markovian fashion, meaning that information from the previous frame is sufficient to compute all necessary variables of the subsequent frame. \par

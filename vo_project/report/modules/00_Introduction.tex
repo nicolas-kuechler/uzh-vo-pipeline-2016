@@ -1,14 +1,13 @@
 \chapter{Introduction}
-
+\vspace{-10mm}
 \section{Monocular Visual Odometry}
-The following report describe a pipeline for monocular visual odometry (VO). The pipeline relies on the input of single camera feed to recover an estimate of the camera poses in each frame up to an unknown scale factor.  
+The following report describes a completely monocular visual odometry (VO) pipeline. It relies on the input of a single camera feed to estimate a trajectory which is valid up to an unknown scale factor.
 
 \section{Parameter Settings}
-Before running three parameters can be set in 'main.m' choosing the data set and whether or not bundle adjusted and/or trajectory alignment to the ground truth should be performed. The last two are controlled with variables align\_to\_ground\_truth and bundle\_adjustment while the first chooses between the KITTI (ds = 0), Malaga (ds = 1), parking (ds = 2) or our own (ds = 3) data set. For more information on our own data set see chapter ??.
+\label{params}
+Before starting our VO pipeline by executing the file \emph{main.m}, the tester has to choose the data set, whether or not bundle adjusted and/or trajectory alignment to the ground truth should be performed. The last two are controlled with variables \emph{align\_to\_ground\_truth} and \emph{bundle\_adjustment} while the first can be used to distinguish between the KITTI (ds=0), Malaga (ds=1), Parking (ds=2) and our own (ds=3) data set. (\ref{dataset})
 
 \section{Additional Work}
-The successful implementation of the VO pipeline involved the tuning of several parameters which were vital to the stable performance. To determine the best parameters a performance metric has to be found that best reflects the quality of the trajectory estimate. For this purpose we defined the average trajectory deviation and performed a quantitative analysis of various parameter combination. We used this as basis for our choice of parameters. More on this analysis can be found in section ??. \par
-For the purpose of testing these optimal parameters we recorded an own video and integrated it into the existing VO pipeline. This is an important test, since can show us if we are over-fitting our parameters to the benchmark Data Sets. More information to the Dataset can be found in section ??. \par
-Due to errors in the pose and landmark estimates of the VO pipeline scale drift is inevitable. To counteract this drift multiple views can be combined in bundle adjustment (BA). A form of sliding window and overlapping bundle adjustment was integrated into the existing pipeline. The adjusted estimates are more accurate albeit also more cumbersome to compute.
-
-
+The successful implementation of the VO pipeline involved the tuning of several parameters which were vital to the stable performance. This was done by performing a quantitative simulation in order to find the combination that leads to the best trajectory estimate. For this a performance metric consisting of the average trajectory deviation was defined and used to simulate several combinations of the parameters. More on this analysis can be found in section \ref{simulation}. \par
+For the purpose of testing these ideal parameters we recorded an own video and integrated it into the existing VO pipeline. This is an important test, because it assured us that we were not over-fitting our parameters to the benchmark data sets. More information on the data set can be found in section \ref{dataset}. \par
+Unfortunately scale drift is inevitable in a VO pipeline due to errors in the pose and landmark estimates. To combat this drift multiple views can be refined using bundle adjustment (BA). We integrated a form of sliding window and overlapping bundle adjustment into the existing pipeline in order to refine both structure and motion. The adjusted estimates are significantly more accurate but at the cost of computational performance. For further information consult section \ref{bundle adjustment}.
