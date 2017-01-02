@@ -1,3 +1,8 @@
 data/*
 report/Report.pdf
 report/.texpadtmp
+*.aux
+*.gz
+*.bak
+*.toc
+*.log
