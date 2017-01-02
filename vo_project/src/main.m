@@ -7,9 +7,12 @@ rng(1);
 
 ori_errors = [];
 loc_errors = [];
+x = [0;0;0;0;0;0;1];
 
 %% Setup
-ds = 0; % 0: KITTI, 1: Malaga, 2: parking
+ds = 0; % 0: KITTI, 1: Malaga, 2: parking, 3: ...
+bundle_adjustment = 1;
+align_to_ground_truth = 0;
 kitti_path = '../data/kitti';
 malaga_path = '../data/malaga-urban-dataset-extract-07';
 parking_path = '../data/parking';
@@ -50,6 +53,8 @@ end
 bootstrap_frames = [000001 000003]; 
 if exist('ground_truth')
     ground_truth(2, :) = [];
+else
+    align_to_ground_truth = 0;
 end
 
 if ds == 0
@@ -90,8 +95,12 @@ params = struct(...
     'eWCP_confidence', 99.9, ...
     'eWCP_max_repr_error', 2, ...
     'triangulate_max_repr_error', 5, ...
-    'runBA', 0, ...
+    'runBA', bundle_adjustment, ...
+    'alignment', align_to_ground_truth, ...
     'critical_kp', 150);
+
+bundle_adjustment = 1;
+align_to_ground_truth = 0;
 
 [R, T, repr_error, pt_cloud, keypoints_l, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
 
@@ -177,15 +186,17 @@ for i = range
     locations = [locations, -R' * T];
 
     % align trajectories
-    [locations, loc_error, ori_error] = alignEstimateToGroundTruth(...
-        ground_truth(1:i, :), locations, orientations);
-    ori_errors = [ori_errors, loc_error / i];
-    loc_errors = [loc_errors, ori_error / i];
+    if params.alignment
+        [aligned_locations, aligned_pt_cloud, x, loc_error, ori_error] = alignEstimateToGroundTruth(...
+            x, ground_truth(1:i-1,  :), locations, next_state.pt_cloud, orientations);
+        ori_errors = [ori_errors, loc_error / i];
+        loc_errors = [loc_errors, ori_error / i];
+    end
 
     % plot results
     num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
     num_matched_kp_history = [num_matched_kp_history(2:end) size(next_state.matched_kp,2)];
-    fig_num = plotPipeline(locations,next_state,next_image,fig_num, num_candidates_history, num_matched_kp_history);
+    fig_num = plotPipeline(aligned_locations, aligned_pt_cloud, next_state, next_image,fig_num, num_candidates_history, num_matched_kp_history);
 
     % Makes sure that plots refresh.    
     pause(0.01)

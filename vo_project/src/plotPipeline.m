@@ -1,4 +1,4 @@
-function [ fig_num ] = plotPipeline( locations, state, img, fig_num, num_candidates_history, num_matched_kp_history )
+function [ fig_num ] = plotPipeline( locations, pt_cloud, state, img, fig_num, num_candidates_history, num_matched_kp_history )
 %PLOTPIPELINE Summary:
 %   Creates 4 plots:
 %   - current image with available candidate and tracked keypoints
@@ -23,8 +23,6 @@ function [ fig_num ] = plotPipeline( locations, state, img, fig_num, num_candida
 
 candidates = state.candidates;
 matched_kp = state.matched_kp;
-pt_cloud = state.pt_cloud;
-
 
 %% Initialize figure if first iteration
 
@@ -64,8 +62,8 @@ hold off;
 %% Plot full trajectory
 
 subplot(2,4,6)
-
-plot3(locations(1,:),locations(2,:),locations(3,:),'b-','LineWidth',2);
+num_locations = size(locations, 2); 
+plot3(locations(1,:),locations(2,:),locations(3,:),'c-','LineWidth',2, 'Marker', 'o', 'MarkerIndices', 1 : 10 : num_locations);
 view([0,-1,0]);
 daspect([4 1 5]);
 pbaspect([4 1 5]);
