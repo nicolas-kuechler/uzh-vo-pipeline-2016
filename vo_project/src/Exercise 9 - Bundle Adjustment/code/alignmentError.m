@@ -11,6 +11,5 @@ s = x(7);
 transformed_poses = s * R * p_W_estimate + t;
 
 e = transformed_poses(:) - p_W_GT(:);
-
 end
 

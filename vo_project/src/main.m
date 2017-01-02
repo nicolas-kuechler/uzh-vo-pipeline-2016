@@ -7,9 +7,13 @@ rng(1);
 
 ori_errors = [];
 loc_errors = [];
+x = [0;0;0;0;0;0;1];
 
 %% Setup
-ds = 3; % 0: KITTI, 1: Malaga, 2: parking
+
+ds = 3; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
+bundle_adjustment = 1;
+align_to_ground_truth = 0;
 kitti_path = '../data/kitti';
 malaga_path = '../data/malaga-urban-dataset-extract-07';
 parking_path = '../data/parking';
@@ -48,7 +52,7 @@ elseif ds == 3
     images = dir([vespa_path ...
         '/images']);
     K = [609.932619643408,0,0;0,610.173360091855,0;329.144287081628,181.258698042663,1]';
-    last_frame = 4396;
+    last_frame = 3247;
     
 else
     assert(false);
@@ -59,6 +63,8 @@ end
 bootstrap_frames = [000001 000003]; 
 if exist('ground_truth')
     ground_truth(2, :) = [];
+else
+    align_to_ground_truth = 0;
 end
 
 if ds == 0
@@ -87,24 +93,46 @@ else
     assert(false);
 end
 
-% Initialize Parameters --> TODO Maybe different tuning for each dataset
-% TODO: optimize parameters to reduce reprojection error, pose error
-% (compared to ground truth)
-params = struct(...
-    'harris_patch_size', 9, ...
-    'harris_kappa', 0.08, ...
-    'num_keypoints', 800, ...
-    'nonmaximum_supression_radius', 10, ...
-    'descriptor_radius', 13,...  %desc radius 9,...
-    'match_lambda', 8, ...
-    'triangulation_angle_threshold', 3,...
-    'surpress_existing_matches', 1 ,... %1 for true, 0 for false
-    'candidate_cap', 700,...
-    'add_candidate_each_frame', 100 ,...
-    'eWCP_confidence', 99.0, ...
-    'eWCP_max_repr_error', 1, ...
-    'triangulate_max_repr_error', 200000000, ...
-    'runBA', true);
+if bundle_adjustment
+    params = struct(...
+        'harris_patch_size', 9, ...
+        'harris_kappa', 0.08, ...
+        'num_keypoints', 800, ...
+        'nonmaximum_supression_radius', 10, ...
+        'descriptor_radius', 13,...  %desc radius 9,...
+        'match_lambda', 8, ...
+        'triangulation_angle_threshold', 3,...
+        'surpress_existing_matches', 1 ,... %1 for true, 0 for false
+        'candidate_cap', 700,...
+        'add_candidate_each_frame', 200 ,...
+        'eWCP_confidence', 99, ...
+        'eWCP_max_repr_error', 1, ...
+        'triangulate_max_repr_error', 1, ...
+        'runBA', bundle_adjustment, ...
+        'alignment', align_to_ground_truth, ...
+        'critical_kp', 50);
+else %TODO: use params from Nicolas
+    params = struct(...
+        'harris_patch_size', 9, ...
+        'harris_kappa', 0.08, ...
+        'num_keypoints', 800, ...
+        'nonmaximum_supression_radius', 10, ...
+        'descriptor_radius', 13,...  %desc radius 9,...
+        'match_lambda', 8, ...
+        'triangulation_angle_threshold', 3,...
+        'surpress_existing_matches', 1 ,... %1 for true, 0 for false
+        'candidate_cap', 700,...
+        'add_candidate_each_frame', 200 ,...
+        'eWCP_confidence', 99, ...
+        'eWCP_max_repr_error', 1, ...
+        'triangulate_max_repr_error', 1, ...
+        'runBA', bundle_adjustment, ...
+        'alignment', align_to_ground_truth, ...
+        'critical_kp', 50);
+end
+
+bundle_adjustment = 1;
+align_to_ground_truth = 0;
 
 
 [R, T, repr_error, pt_cloud, keypoints_l, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
@@ -116,7 +144,6 @@ tau2 = HomogMatrix2twist([R', -R' * T; 0, 0, 0, 1]);
 n = 2; m = size(pt_cloud, 2); k1 = m; k2 = m;
 prev_state = struct('pt_cloud', pt_cloud, ...
                     'matched_kp', keypoints_r, ...
-                    'cam_transformation', [R, T], ...
                     'candidates', [], ...
                     'candidates_start', [], ...
                     'candidates_start_pose', [], ...
@@ -132,6 +159,7 @@ orientations = [reshape(eye(3), 9, 1), R(:)];
 fig_num = NaN;
 %ring buffer for number of candidates history
 num_candidates_history = nan(1,20);
+num_matched_kp_history = nan(1,20);
 
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
@@ -154,77 +182,62 @@ for i = range
         assert(false);
     end
     
-    if mod(i, 5) == 3 && params.runBA
+    if params.runBA && mod(i, 4) == 1
         % refine poses and point cloud
-        hidden_state = runBA(next_state.hidden_state, next_state.observations, K);
-        n = next_state.observations(1);
-        m = next_state.observations(2);
+        hidden_state = runBA(prev_state.hidden_state, prev_state.observations, K);
+        n = prev_state.observations(1);
+        m = prev_state.observations(2);
         
         % update existing trajectory
         [BAlocations, BAorientations, BAland_marks] = parse_hidden_state(hidden_state, n, m);
         locations(:, end - n + 1 : end) = BAlocations;
         BAorientations(:, end - n + 1 : end) = BAorientations;
         
-        % update previous state
-        k_last_frame = size(prev_state.pt_cloud, 2);
-        l_last_frame = next_state.observations(end - k_last_frame + 1 : end);
-        prev_state.pt_cloud =  BAland_marks(:, l_last_frame);
-        prev_R = reshape(BAorientations(:, end), 3, 3);
-        prev_T = - prev_R * locations(:, end);
-        prev_state.cam_transformation = [prev_R, prev_T];
-        
-        
+        % extract last two observations 
         counter = 3;
-        lis = cell(2,1);
-        counters = [0,0];
+        Os = cell(2,1);
         for j = 1 : n
             k_i = prev_state.observations(counter);   
             if j > n - 2
-                lis{j - n + 2} = prev_state.observations(counter + 1 + 2 * k_i : counter + 3 * k_i)';
-                counters(j - n + 2) = counter;
+                Os{j - n + 2} = prev_state.observations(counter : counter + 3 * k_i)'; 
             end
             counter = counter + 1 + 3 * k_i;
         end
+        O1 = Os{1};
+        O2 = Os{2};
         
         % crop landmarks to contain only points from last two observations
-        [l1, l2, point_cloud, new_m] = myCropProb(lis{1}, lis{2}, BAland_marks);
+        [O1, O2, new_l2, point_cloud, new_m] = myCropProb(O1', O2', BAland_marks);
         
-        % take first observations to overlap with the next two
-        sliding_observations = prev_state.observations(counters(1):end);
-        k1 = sliding_observations(1); 
-        O1 = sliding_observations(1 : 1 + 3 * k1);
-        O1(2 + 2 * k1 : 1 + 3 * k1) = l1;
-        
-        O2 = sliding_observations(2 + 3 * k1 : end);
-        k2 = O2(1);
-        O2(2 + 2 * k2 : 1 + 3 * k2) = l2;
-        
-        sliding_hidden_state = [prev_state.hidden_state( 6*(n - 2) + 1 : 6*n), ...
-            point_cloud];
-        
+        % update previous state
+        prev_state.pt_cloud =  point_cloud(:, new_l2);
+        prev_state.hidden_state = ...
+            [prev_state.hidden_state( 6 * n - 11 : 6 * n), point_cloud(:)'];
         prev_state.observations = [2, new_m, O1, O2];
-        prev_state.hidden_state = sliding_hidden_state;
     end
     
     % process next image and find next location and orientation
-    [R, T, next_state, debug_data, plot_pose ] = processFrame(next_image, prev_img, prev_state, K, params);
+    [R, T, next_state] = processFrame(next_image, prev_img, prev_state, K, params);
     
     % collect orientations and locations
     orientations = [orientations, R(:)];
-    if plot_pose
-        locations = [locations, -R' * T];
-    else
-        locations = [locations, locations(:, end)];
-    end
+    locations = [locations, -R' * T];
+
     % align trajectories
-%     [aligned_locations, loc_error, ori_error] = alignEstimateToGroundTruth(...
-%         ground_truth(1:i, :), locations, orientations);
-%     ori_errors = [ori_errors, loc_error / i];
-%     loc_errors = [loc_errors, ori_error / i];
+    if params.alignment
+        [aligned_locations, aligned_pt_cloud, x, loc_error, ori_error] = alignEstimateToGroundTruth(...
+            x, ground_truth(1:i-1,  :), locations, next_state.pt_cloud, orientations);
+        ori_errors = [ori_errors, loc_error / i];
+        loc_errors = [loc_errors, ori_error / i];
+    else
+        aligned_locations = locations;
+        aligned_pt_cloud = next_state.pt_cloud;
+    end
 
     % plot results
     num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
-    fig_num = plotPipeline(locations,next_state,next_image,fig_num, num_candidates_history);
+    num_matched_kp_history = [num_matched_kp_history(2:end) size(next_state.matched_kp,2)];
+    fig_num = plotPipeline(aligned_locations, aligned_pt_cloud, next_state, next_image,fig_num, num_candidates_history, num_matched_kp_history);
 
     % Makes sure that plots refresh.    
     pause(0.01)

@@ -104,17 +104,5 @@ else
     repr_error = sum(difference(:).^2) / size(difference, 2);
 end
 
-%% DEBUG: (delete after testing)
-debug = true;
-
-if(debug)
-    imshow(img0,'InitialMagnification','fit');
-    hold on;
-    plot(kp1_selected(1,:), kp1_selected(2,:), 'rx', 'Linewidth', 2);
-    plot(kp1_reprojected(1,:), kp1_reprojected(2,:), 'bx', 'Linewidth', 2);
-    
-    title('Left Image (Red matches: Inlier keypoints, blue matches: reprojected point cloud.');
-end
-
 end
 
