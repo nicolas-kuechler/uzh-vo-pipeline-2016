@@ -61,7 +61,7 @@ hold off;
 
 %% Plot full trajectory
 subplot(2,4,6) 
-plot3(locations(1,:),locations(2,:),locations(3,:),'b-','LineWidth',2, 'Marker', 'o');
+plot3(locations(1,:),locations(2,:),locations(3,:),'b-','LineWidth',2);
 view([0,-1,0]);
 daspect([4 1 5]);
 pbaspect([4 1 5]);

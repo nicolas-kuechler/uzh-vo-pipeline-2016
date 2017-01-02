@@ -62,14 +62,17 @@ else
     lower_bound(pose_indices) =  hidden_state(pose_indices) - 0.01;
 end
 
-options = optimoptions('lsqnonlin', 'MaxIterations', MaxIterations, 'JacobPattern', M, ...
-    'Display', 'iter', 'ScaleProblem', 'jacobian');
+options = optimoptions('lsqnonlin', 'MaxIterations', MaxIterations, 'JacobPattern', M,...
+    'ScaleProblem', 'jacobian', 'Display', 'off');
 
 % Define error function BAError
 error_function = @(hidden_state) BAError(hidden_state, observations, K, 2 * sum(ks));
 
 % run BA
+% turn off warnings
+warningstate = warning('off','optimlib:lsqncommon:SwitchToLineSearch');
 refined_hidden_state = lsqnonlin(error_function, hidden_state, lower_bound, upper_bound, options);
+warning(warningstate)
 
 % align new point cloud and poses so that the first poses coincide (this is
 % done if the chosen algorithm is levenberg marquart which does not allow
