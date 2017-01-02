@@ -2,7 +2,13 @@
 \section{Data Set}
 
 \section{Bundle Adjustment}
+As described in section ?? the stand-alone VO pipeline suffers from scale drift. This means that over the trajectory the average scale of the displacements changes leading to large differences in proportions between length scales. \par
+To counteract this drift it is possible to use bundle adjustment (BA) which minimizes the reprojection error of landmarks over several views. In the pipeline windowed BA is implemented. Every ?? frames the last ?? frames are adjusted and replaced. In order to ensure continuity the adjusted point cloud and trajectory. Is translated such that the second last position of the last segment coincides with first position of the newly adjusted segment. \par
+Using BA scale drift can be effectively counteracted as Fig. ?? a and b show.
+
+
+Despite the advantages of BA in its current form it is still very slow. This can be attributed to the fact that there are too many landmarks and poses for too few observations. In this case the Levenberg Marquart Optimization algorithm must be used in lsqnonlin leading to far worse performance. A way to improve this is to tune the tracking and triangulation parameters in a way to lose minimal matches over successive frames. This ensures that key points are observed several times before BA is executed. 
 
 \section{Ground Truth Alignment and Error Analysis}
-
-\section{Candidate Detection}
+For a stable operation of the VO pipeline optimized parameters must be chosen to control detection and matching of new key points, triangulation etc. However, to determine the optimized parameters a suitable cost function must be defined to determine the quality of the resulting trajectories. To this end it is reasonable to compare the total error resulting after aligning the trajectory to the ground truth using the following formula:
+$$e = \underset{R,t,s}{\min} \sum_i$$
