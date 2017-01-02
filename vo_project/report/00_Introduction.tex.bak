@@ -1,0 +1,14 @@
+\chapter{Introduction}
+
+\section{Monocular Visual Odometry}
+The following report describe a pipeline for monocular visual odometry (VO). The pipeline relies on the input of single camera feed to recover an estimate of the camera poses in each frame up to an unknown scale factor.  
+
+\section{Parameter Settings}
+Before running three parameters can be set in 'main.m' choosing the data set and whether or not bundle adjusted and/or trajectory alignment to the ground truth should be performed. The last two are controlled with variables align\_to\_ground\_truth and bundle\_adjustment while the first chooses between the KITTI (ds = 0), Malaga (ds = 1), parking (ds = 2) or our own (ds = 3) data set. For more information on our own data set see chapter ??.
+
+\section{Additional Work}
+The successful implementation of the VO pipeline involved the tuning of several parameters which were vital to the stable performance. To determine the best parameters a performance metric has to be found that best reflects the quality of the trajectory estimate. For this purpose we defined the average trajectory deviation and performed a quantitative analysis of various parameter combination. We used this as basis for our choice of parameters. More on this analysis can be found in section ??. \par
+For the purpose of testing these optimal parameters we recorded an own video and integrated it into the existing VO pipeline. This is an important test, since can show us if we are over-fitting our parameters to the benchmark Data Sets. More information to the Dataset can be found in section ??. \par
+Due to errors in the pose and landmark estimates of the VO pipeline scale drift is inevitable. To counteract this drift multiple views can be combined in bundle adjustment (BA). A form of sliding window and overlapping bundle adjustment was integrated into the existing pipeline. The adjusted estimates are more accurate albeit also more cumbersome to compute.
+
+

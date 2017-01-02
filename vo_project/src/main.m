@@ -13,7 +13,7 @@ x = [0;0;0;0;0;0;1];
 
 ds = 3; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
 bundle_adjustment = 1;
-align_to_ground_truth = 0;
+align_to_ground_truth = 1;
 kitti_path = '../data/kitti';
 malaga_path = '../data/malaga-urban-dataset-extract-07';
 parking_path = '../data/parking';
@@ -47,13 +47,13 @@ elseif ds == 2
     ground_truth = load([parking_path '/poses.txt']);
     ground_truth = ground_truth(:, [end-8 end]);
 elseif ds == 3
-    
     assert(exist('vespa_path', 'var') ~= 0);
     images = dir([vespa_path ...
         '/images']);
-    K = [609.932619643408,0,0;0,610.173360091855,0;329.144287081628,181.258698042663,1]';
+    K = [609.932619643408, 0, 0;
+         0, 610.173360091855, 0;
+         329.144287081628, 181.258698042663, 1]';
     last_frame = 3247;
-    
 else
     assert(false);
 end
@@ -134,9 +134,7 @@ end
 bundle_adjustment = 1;
 align_to_ground_truth = 0;
 
-
 [R, T, repr_error, pt_cloud, keypoints_l, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
-
 
 % state 
 tau1 = zeros(6, 1);
