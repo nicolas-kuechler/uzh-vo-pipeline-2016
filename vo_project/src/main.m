@@ -13,7 +13,7 @@ ds = 3; % 0: KITTI, 1: Malaga, 2: parking
 kitti_path = '../data/kitti';
 malaga_path = '../data/malaga-urban-dataset-extract-07';
 parking_path = '../data/parking';
-waedi_path = '../data/waedi';
+vespa_path = '../data/vespa';
 
 if ds == 0
     % need to set kitti_path to folder containing "00" and "poses"
@@ -44,8 +44,8 @@ elseif ds == 2
     ground_truth = ground_truth(:, [end-8 end]);
 elseif ds == 3
     
-    assert(exist('waedi_path', 'var') ~= 0);
-    images = dir([waedi_path ...
+    assert(exist('vespa_path', 'var') ~= 0);
+    images = dir([vespa_path ...
         '/images']);
     K = [609.932619643408,0,0;0,610.173360091855,0;329.144287081628,181.258698042663,1]';
     last_frame = 4396;
@@ -79,10 +79,10 @@ elseif ds == 2
     img1 = rgb2gray(imread([parking_path ...
         sprintf('/images/img_%05d.png',bootstrap_frames(2))]));
 elseif ds == 3
-    img0 = imread([waedi_path ...
-        sprintf('/images_undistorted/waedi_%04d.png', bootstrap_frames(1))]);
-    img1 = imread([waedi_path ...
-        sprintf('/images_undistorted/waedi_%04d.png',bootstrap_frames(2))]);
+    img0 = imread([vespa_path ...
+        sprintf('/images_undistorted/vespa_%04d.png', bootstrap_frames(1))]);
+    img1 = imread([vespa_path ...
+        sprintf('/images_undistorted/vespa_%04d.png',bootstrap_frames(2))]);
 else
     assert(false);
 end
@@ -147,8 +147,8 @@ for i = range
         next_image = im2uint8(rgb2gray(imread([parking_path ...
             sprintf('/images/img_%05d.png',i)])));
     elseif ds == 3
-        next_image = im2uint8(imread([waedi_path ...
-            sprintf('/images_undistorted/waedi_%04d.png',i)]));
+        next_image = im2uint8(imread([vespa_path ...
+            sprintf('/images_undistorted/vespa_%04d.png',i)]));
         
     else
         assert(false);
