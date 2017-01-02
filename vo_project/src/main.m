@@ -10,12 +10,14 @@ loc_errors = [];
 x = [0;0;0;0;0;0;1];
 
 %% Setup
-ds = 0; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
+
+ds = 3; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
 bundle_adjustment = 1;
 align_to_ground_truth = 0;
 kitti_path = '../data/kitti';
 malaga_path = '../data/malaga-urban-dataset-extract-07';
 parking_path = '../data/parking';
+vespa_path = '../data/vespa';
 
 if ds == 0
     % need to set kitti_path to folder containing "00" and "poses"
@@ -44,6 +46,14 @@ elseif ds == 2
      
     ground_truth = load([parking_path '/poses.txt']);
     ground_truth = ground_truth(:, [end-8 end]);
+elseif ds == 3
+    
+    assert(exist('vespa_path', 'var') ~= 0);
+    images = dir([vespa_path ...
+        '/images']);
+    K = [609.932619643408,0,0;0,610.173360091855,0;329.144287081628,181.258698042663,1]';
+    last_frame = 3247;
+    
 else
     assert(false);
 end
@@ -74,6 +84,11 @@ elseif ds == 2
         sprintf('/images/img_%05d.png',bootstrap_frames(1))]));
     img1 = rgb2gray(imread([parking_path ...
         sprintf('/images/img_%05d.png',bootstrap_frames(2))]));
+elseif ds == 3
+    img0 = imread([vespa_path ...
+        sprintf('/images_undistorted/vespa_%04d.png', bootstrap_frames(1))]);
+    img1 = imread([vespa_path ...
+        sprintf('/images_undistorted/vespa_%04d.png',bootstrap_frames(2))]);
 else
     assert(false);
 end
@@ -119,7 +134,9 @@ end
 bundle_adjustment = 1;
 align_to_ground_truth = 0;
 
+
 [R, T, repr_error, pt_cloud, keypoints_l, keypoints_r] = initializePointCloudMono(img0,img1,K, params);
+
 
 % state 
 tau1 = zeros(6, 1);
@@ -157,6 +174,10 @@ for i = range
     elseif ds == 2
         next_image = im2uint8(rgb2gray(imread([parking_path ...
             sprintf('/images/img_%05d.png',i)])));
+    elseif ds == 3
+        next_image = im2uint8(imread([vespa_path ...
+            sprintf('/images_undistorted/vespa_%04d.png',i)]));
+        
     else
         assert(false);
     end
