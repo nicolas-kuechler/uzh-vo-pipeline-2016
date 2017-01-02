@@ -103,5 +103,6 @@ else
     difference = kp1_selected - kp1_reprojected;
     repr_error = sum(difference(:).^2) / size(difference, 2);
 end
+
 end
 
