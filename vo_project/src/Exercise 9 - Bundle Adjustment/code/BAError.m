@@ -15,7 +15,7 @@ taus = reshape(hidden_state(1: 6 * n), 6, n);
 for i = 1 : n
     % get homography for frame i (inv because inverse is saved in the
     % hidden state)
-    homography = inv(twist2HomogMatrix(taus(:, i))); 
+    homography = twist2HomogMatrix(taus(:, i)); 
     
     % get ith observation
     k_i = observations(counter);
@@ -29,7 +29,10 @@ for i = 1 : n
     lm = land_marks(:, li);
     
     % reproject landmarks
-    fx_i = reprojectPoints(lm, homography(1:3, :), K);
+    R = homography(1:3, 1:3)';
+    t = -R * homography(1:3, 4);
+    
+    fx_i = reprojectPoints(lm, [R, t], K);
     
     fx(kp_counter : kp_counter + 2 * k_i - 1) = fx_i(:)';
     Y(kp_counter : kp_counter + 2 * k_i - 1) = p_i;
