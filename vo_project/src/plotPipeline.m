@@ -60,10 +60,9 @@ legend('Landmarks', 'Candidates');
 hold off;
 
 %% Plot full trajectory
-
 subplot(2,4,6)
 num_locations = size(locations, 2); 
-plot3(locations(1,:),locations(2,:),locations(3,:),'c-','LineWidth',2, 'Marker', 'o', 'MarkerIndices', 1 : 10 : num_locations);
+plot3(locations(1,:),locations(2,:),locations(3,:),'b-','LineWidth',2, 'Marker', 'o', 'MarkerIndices', 1 : 10 : num_locations);
 view([0,-1,0]);
 daspect([4 1 5]);
 pbaspect([4 1 5]);
@@ -84,10 +83,5 @@ view([0,-1,0]);
 pbaspect([4 1 5]);
 title('Trajectory over the last 20 Frames and Landmarks');
 hold off;
-
-
-
-
-
 end
 
