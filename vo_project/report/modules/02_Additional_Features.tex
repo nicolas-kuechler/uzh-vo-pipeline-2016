@@ -2,6 +2,19 @@
 \section{Data Set}
 \label{dataset}
 
+The additional data set was recorded in the 7th district of Zürich using a \emph{Huawei Nexus 6p} smartphone strapped to the luggage rack of a \emph{Vespa} motorcycle. Compared to the data sets provided to us it includes some additional difficulties that are handled by our VO implementation with varying success:\\
+
+\begin{enumerate}
+\item \emph{Additional Camera Movement:} Due to the size and weight of the motorcycle, the camera is affected by a much larger amount of vibration originating from the motor. The same factor also cause the vehicle to be suspect to a lot more squat (leaning backwards on acceleration) and dive (leaning forward on breaking) than the cars used in the KITTI and the MALAGA data sets. This, together with the motorcycle having to lean into turns, results in more camera rotation along axes that lie in the plane of movement overall.
+
+\item \emph{Traffic:} Another factor that ads to the complexity of our data set is traffic. Both pedestrian and vehicle traffic were unavoidable during the recording which includes two pedestrians walking by directly in front of the camera at some point. Additionally, two stops at red lights were necessary.
+
+\item \emph{Unknowns} Preprocessing performed on the video recording by the smartphone automatically ads an unknown factor that may affect the functionality of our VO pipeline.
+\end{enumerate}
+
+\emph{1.} and \emph{3.} seem to be handled reasonably well by our VO pipeline implementation. Apart from some additional scale drift compared to the provided data sets, the estimated path looks decent both smoothness and direction wise. \emph{2.} however does seem to be an issue to some degree: While other vehicle traffic participants do not seem to interfere with the path estimation too much, two pedestrians passing by directly in front of the camera lead to the detection of some erroneous movement.
+
+
 \section{Bundle Adjustment}
 \label{bundle adjustment}
 As mentioned in section ?? the stand-alone VO pipeline suffers from a significant amount of scale drift. This means that over the trajectory, the average scale of the displacements changes. \par
