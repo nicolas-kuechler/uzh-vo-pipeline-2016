@@ -1,5 +1,5 @@
 function [cloud, matched_kp, remain] = ...
-    tryTriangulate(candidates_current, candidates_start, candidates_start_pose, T, K, flag, params)
+    tryTriangulate(candidates_current, candidates_start, candidates_start_pose, T, K, not_critical_kp, params)
 % TRYTRIANGULATE function that takes candidate keypoints (candidate_k) and
 % key points at the start of the track (kp_track_start) and triangulates
 % new 3D points if their bearing angle in between is large enough.
@@ -12,6 +12,8 @@ function [cloud, matched_kp, remain] = ...
 %                        the candidate key points were first detected.
 %         T: (3 x 4) camera pose from the current frame
 %         K: (3 x 3) camera calibration matrix.
+%         not_critical_kp: flag to show that the keypoint count is critically
+%                          low
 %         params: parameter struct containing parameters to execute
 %                 triangulation
 
@@ -59,7 +61,7 @@ end
 % remove those with high repr error and negative z
 z_component = T(3, 1 : 3) * new_3d_pt + T(3, 4);
 z_mask = z_component > 0;
-if flag
+if not_critical_kp
     r_mask = repr_Errors < params.triangulate_max_repr_error;
 else
     r_mask = repr_Errors > 0;
