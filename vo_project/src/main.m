@@ -3,15 +3,16 @@ clear all;
 close all;
 
 addpath(genpath('./'));
-rng(1);
+rng(2);
 
 ori_errors = [];
 loc_errors = [];
 x = [0;0;0;0;0;0;1];
+movie_cell = cell(2, 4540);
 
 %% Setup
 
-ds = 3; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
+ds = 0; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
 bundle_adjustment = 1;
 align_to_ground_truth = 1;
 kitti_path = '../data/kitti';
@@ -161,6 +162,9 @@ num_matched_kp_history = nan(1,20);
 
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
+
+%% Set up the movie.
+tic;
 for i = range
     fprintf('\n\nProcessing frame %d\n=====================\n', i);
     if ds == 0
@@ -180,7 +184,7 @@ for i = range
         assert(false);
     end
     
-    if params.runBA && mod(i, 4) == 1
+    if params.runBA && mod(i, 2) == 1
         % refine poses and point cloud
         hidden_state = runBA(prev_state.hidden_state, prev_state.observations, K);
         n = prev_state.observations(1);
@@ -236,7 +240,12 @@ for i = range
     num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
     num_matched_kp_history = [num_matched_kp_history(2:end) size(next_state.matched_kp,2)];
     fig_num = plotPipeline(aligned_locations, aligned_pt_cloud, next_state, next_image,fig_num, num_candidates_history, num_matched_kp_history);
-
+    
+    % record time and frame
+    movie_cell{2,i} = getframe(gcf);
+    movie_cell{1,i-1} = toc;
+    tic;
+    
     % Makes sure that plots refresh.    
     pause(0.01)
     
@@ -244,3 +253,4 @@ for i = range
     prev_img = next_image;
     prev_state = next_state;
 end
+save('movie_cell');
