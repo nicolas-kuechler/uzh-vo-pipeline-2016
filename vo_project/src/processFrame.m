@@ -38,11 +38,6 @@ function [ R, T, curr_state, debug_data,duration_data, plot_pose ] = processFram
 %
 %
 
-
-
-
-
-
 %# valid parameters, and their default values
 pnames = {'debug', 'track_duration'};
 dflts  = {'false', 'false'};
