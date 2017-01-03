@@ -11,5 +11,9 @@ Advantageous as BA in its current form may be, it is also very slow. This can be
 
 \section{Ground Truth Alignment and Error Analysis}
 \label{simulation}
+
 For a stable operation of the VO pipeline, optimized parameters must be chosen to control detection and matching of new key points, triangulation etc. To determine the optimal parameters, a suitable cost function must be defined to determine the quality of the resulting trajectories. To this end it is reasonable to compare the total error resulting after aligning the trajectory to the ground truth using the following formula:
-$$e = \underset{R,t,s}{\min} \sum_i$$
+\begin{equation}e_p = \underset{R,t,s}{\min} \sum_i (sR \cdot p_{GT, i} + t - p_{est, i})^2\end{equation}
+$$e_r = \sum_i rotMatToRotVec(R^* \cdot R_{est,i} \cdot R_{GT, i}^T)^2$$
+Where i is the index along the trajectory, $e_p$ is the positional error, $e_r$ is the rotational error, $p_{GT}$ and $R_{GT}$ are the ground truth position and rotation, $p_{est}$ and $R_{est}$ are the estimated position and rotation and $R^*$ is the argument for R when $e_p$ is minimal. The function rotMatToRotVec transforms the rotation matrix into a rotation vector of the form $\phi = \theta n$  Using these error metrics a detailed error analysis over the first ?? frames was done. More information on this can be found in section ??.
+
