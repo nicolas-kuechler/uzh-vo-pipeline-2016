@@ -1,11 +1,11 @@
 \chapter{Introduction}
-\vspace{-10mm}
+\vspace{-5mm}
 \section{Monocular Visual Odometry}
 The following report describes a completely monocular visual odometry (VO) pipeline. It relies on the input of a single visual sensor to estimate a trajectory which is valid up to an unknown scale factor.
 
 \section{Parameter Settings}
 \label{params}
-Before starting our VO pipeline by executing the file \emph{main.m}, the tester has to choose the data set and whether or not bundle adjustment and/or trajectory alignment to the ground truth should be performed. Bundle adjustment and trajectory alignment are controlled through the boolean variables \emph{align\_to\_ground\_truth} and \emph{bundle\_adjustment}. The data set can be selected through the integer variable \emph{ds}.
+Before starting our VO pipeline by executing the file \emph{main.m}, the tester may choose the data set and whether or not bundle adjustment and/or trajectory alignment to the ground truth should be performed.
 
 \section{Additional Work}
 The successful implementation of the VO pipeline involved the tuning of several parameters which were vital to the stable performance. This was done by performing a quantitative simulation in order to find the combination that leads to the best trajectory estimate. For this a performance metric consisting of the average trajectory deviation from the ground truth was defined and used to simulate several combinations of the parameters. More on this analysis can be found in section \ref{simulation}. \par
