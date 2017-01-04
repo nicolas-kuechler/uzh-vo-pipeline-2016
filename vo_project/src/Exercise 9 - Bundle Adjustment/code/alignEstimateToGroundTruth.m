@@ -7,7 +7,10 @@ ground_truth_orientations = ground_truth(:, [1,5,9,2,6,10,3,7,11])';
 
 % determine best rescaling and rotation of estimated trajectory with error
 error_function = @(x) alignmentError(x0, ground_truth_locations, location_estimate);
-[x, location_error] = lsqnonlin(error_function, x0);
+
+options = optimset('display','off');
+
+[x, location_error] = lsqnonlin(error_function, x0, [],[],options);
 M = twist2HomogMatrix(x(1:6, 1));
 R = M(1:3, 1:3);
 t = M(1:3, 4);
