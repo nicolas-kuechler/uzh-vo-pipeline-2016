@@ -40,7 +40,7 @@ curr_hidden_state = prev_state.hidden_state;
 curr_observations = prev_state.observations;
 
 %% Step 1: State Propagation
-[curr_matched_kp, point_validity] = propagateState(curr_matched_kp, prev_img, curr_img);
+[curr_matched_kp, point_validity] = propagateState(curr_matched_kp, prev_img, curr_img, params);
 
 % remove lost points
 curr_matched_kp = curr_matched_kp(:, point_validity);
@@ -58,7 +58,7 @@ pt_cloud = pt_cloud(:, inlier_mask);
 if ~isempty(candidates_prev)
     
     % Track candidate keypoints
-    [candidates_prev, point_validity] = propagateState(candidates_prev, prev_img, curr_img);
+    [candidates_prev, point_validity] = propagateState(candidates_prev, prev_img, curr_img, params);
     
     % Remove lost candidate keypoints
     candidates_prev = candidates_prev(:, point_validity);
