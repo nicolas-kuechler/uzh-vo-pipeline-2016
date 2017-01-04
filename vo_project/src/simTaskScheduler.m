@@ -19,7 +19,7 @@ close all;
 % Setup the machine environment.
 folder = 'sim';
 prefix = 'task';
-sepa = '/';
+sepa = '\';
 %-------------------------------------------------------------------------
 
 % create the folder
@@ -95,7 +95,7 @@ parfor i=index
     % STEP 3
     % setup env params (file names etc)
     env_params = struct(...
-    'max_frames', 10, ...
+    'max_frames', 500, ...
     'csv_durations', true, ...
     'csv_errors', true, ...
     'csv_file_identifier', strcat(folder, sepa, prefix , int2str(i)));
@@ -104,13 +104,14 @@ parfor i=index
         %IMPORTANT: params are merged in main with 'defaults'
         simMain(params,env_params);
         sim_results(i) = 1; %  no exception caught: success
+        disp(['Task: ' num2str(i) ' complete. ']);
     catch err 
         sim_results(i) = 2; % exception caught: failure
-        
         %dump the exception for further analysis
-        file = fopen(strcat(env_params.csv_file_identifier,'_exception.json'),'w');
+        file = fopen(strcat(env_params.csv_file_identifier,'_exception.txt'),'w');
         fprintf(file, '%s', err.getReport('extended', 'hyperlinks','off'));
         fclose(file);
+        disp(['Task: ' num2str(i) ' exception! ']);
     end
 end
 
