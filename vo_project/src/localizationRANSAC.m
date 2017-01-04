@@ -5,13 +5,15 @@ function [R, T, inlier_mask] = ...
 % p_W_landmarks should be 3xN
 % inlier_mask should be 1xN, 0 if the match is an outlier, 1 otherwise.
 assert(size(query_keypoints, 2) == size(p_W_landmarks, 2));
-num_iterations = 200;
-pixel_tolerance = 10;
+num_iterations = params.ransac_num_iterations;
+pixel_tolerance = params.ransac_pixel_tolerance;
 k = 3;
+
 % Initialize RANSAC.
 inlier_mask = zeros(1, size(query_keypoints, 2));
 max_num_inliers = 0;
 alt = 0;
+
 % RANSAC
 for i = 1:num_iterations
     [landmark_sample, idx] = datasample(...
