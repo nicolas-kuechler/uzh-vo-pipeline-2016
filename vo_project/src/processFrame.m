@@ -1,4 +1,4 @@
-function [ R, T, curr_state] = processFrame(curr_img, prev_img, prev_state, K, params, varargin)
+function [ R, T, curr_state] = processFrame(curr_img, prev_img, prev_state, K, params)
 %PROCESSFRAME Determines pose of camera with next_image in frame of
 % camera with prev_img. Determine point_cloud <-> keypoint correspondence
 % with keypoints from next image and point cloud from prev img.
@@ -22,7 +22,6 @@ function [ R, T, curr_state] = processFrame(curr_img, prev_img, prev_state, K, p
 %         K: calibration matrix of camera with curr_img
 %         params: struct containing various parameters for feature
 %                 detection, matching, triangulation etc.
-%         varargin: 
 %
 % outputs: curr_state: state propagated to current time frame (same structure
 %                      as prev_state
@@ -31,8 +30,9 @@ function [ R, T, curr_state] = processFrame(curr_img, prev_img, prev_state, K, p
 %                            with prev_img
 %          R: rotation of camera with next_img with respect to prev_img.
 
-pt_cloud = prev_state.pt_cloud; % pt_cloud w. r. t. last key frame
-curr_matched_kp = prev_state.matched_kp; % keypoints (matched with pt_cloud)
+% shorten names for in code useage
+pt_cloud = prev_state.pt_cloud;
+curr_matched_kp = prev_state.matched_kp;
 candidates_prev = prev_state.candidates;
 candidates_start = prev_state.candidates_start;
 candidates_start_pose = prev_state.candidates_start_pose;
@@ -48,7 +48,8 @@ pt_cloud = pt_cloud(:,point_validity);
 
 %% Step 2: Pose Estimation
 % with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
-[R, T, inlier_mask] = ransacLocalization(curr_matched_kp, pt_cloud, K, params);
+% [R, T, inlier_mask] = localizationMSAC(curr_matched_kp, pt_cloud, K, params);
+[R, T, inlier_mask] = localizationRANSAC(curr_matched_kp, pt_cloud, K, params);
 
 % remove all outliers from ransac
 curr_matched_kp = curr_matched_kp(:, inlier_mask);
