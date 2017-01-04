@@ -48,7 +48,6 @@ pt_cloud = pt_cloud(:,point_validity);
 
 %% Step 2: Pose Estimation
 % with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
-% [R, T, inlier_mask] = localizationMSAC(curr_matched_kp, pt_cloud, K, params);
 [R, T, inlier_mask] = localizationRANSAC(curr_matched_kp, pt_cloud, K, params);
 
 % remove all outliers from ransac
