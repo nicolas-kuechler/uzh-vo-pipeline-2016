@@ -50,16 +50,12 @@ else
     MaxIterations = 20; % uses 'trust-region-reflective'
     % define lower and upper bound poses which have
     % already been bundle adjusted.
-    l2 = lis{end - 2};
-    l1 = lis{end - 1};
-    l_tot = unique([l2', l1']);
-
     upper_bound = inf * ones(size(hidden_state));
     lower_bound = -inf * ones(size(hidden_state));
 
     % put bound on first two poses to make them consistent
-    upper_bound(pose_indices) =  hidden_state(pose_indices) + 0.01;
-    lower_bound(pose_indices) =  hidden_state(pose_indices) - 0.01;
+    upper_bound(pose_indices) =  hidden_state(pose_indices);
+    lower_bound(pose_indices) =  hidden_state(pose_indices);
 end
 
 options = optimoptions('lsqnonlin', 'MaxIterations', MaxIterations, 'JacobPattern', M,...
