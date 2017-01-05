@@ -5,7 +5,6 @@ clear all;
 close all;
 
 addpath(genpath('./'));
-movie_cell = cell(2, 4540);
 
 %% Configuration Section
 
@@ -229,11 +228,6 @@ for i = range
     num_matched_kp_history = [num_matched_kp_history(2:end) size(next_state.matched_kp,2)];
     fig_num = plotPipeline(aligned_locations, aligned_pt_cloud, next_state, next_image,fig_num, num_candidates_history, num_matched_kp_history);
     
-    % record time and frame
-    movie_cell{2,i} = getframe(gcf);
-    movie_cell{1,i-1} = toc;
-    tic;
-    
     % Makes sure that plots refresh.    
     pause(0.01)
     
@@ -241,4 +235,3 @@ for i = range
     prev_img = next_image;
     prev_state = next_state;
 end
-save('movie_cell.mat','movie_cell','-v7.3');
