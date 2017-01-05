@@ -5,6 +5,7 @@ clear all;
 close all;
 
 addpath(genpath('./'));
+movie_cell = cell(2, 4540);
 
 %% Configuration Section
 
@@ -113,10 +114,10 @@ params = struct('harris_patch_size', 9, ...
 
 % Optimize parameters when bundle adjustment is active
 if bundle_adjustment
+    params.ransac_num_iterations = 2000;
     params.runBA = true;
-    params.eWCP_confidence = 99.9;
     params.critical_kp = 50;
-    params.tracker_max_bidirectional_error = 2.1;
+    params.tracker_max_bidirectional_error = 2;
     params.ba_every_nth_frame = 4;
 end
 
@@ -152,6 +153,9 @@ alignment_params = [0;0;0;0;0;0;1];
 
 range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
+
+%% Set up the movie.
+tic;
 for i = range
     fprintf('\n\nProcessing frame %d\n=====================\n', i);
     if dataset_id == 0
@@ -215,8 +219,6 @@ for i = range
     if params.alignment
         [aligned_locations, aligned_pt_cloud, alignment_params, loc_error, ori_error] = alignEstimateToGroundTruth(...
             alignment_params, ground_truth(1:i-1,  :), locations, next_state.pt_cloud, orientations);
-        ori_errors = [ori_errors, loc_error / i];
-        loc_errors = [loc_errors, ori_error / i];
     else
         aligned_locations = locations;
         aligned_pt_cloud = next_state.pt_cloud;
@@ -226,7 +228,12 @@ for i = range
     num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
     num_matched_kp_history = [num_matched_kp_history(2:end) size(next_state.matched_kp,2)];
     fig_num = plotPipeline(aligned_locations, aligned_pt_cloud, next_state, next_image,fig_num, num_candidates_history, num_matched_kp_history);
-
+    
+    % record time and frame
+    movie_cell{2,i} = getframe(gcf);
+    movie_cell{1,i-1} = toc;
+    tic;
+    
     % Makes sure that plots refresh.    
     pause(0.01)
     
@@ -234,3 +241,4 @@ for i = range
     prev_img = next_image;
     prev_state = next_state;
 end
+save('movie_cell.mat','movie_cell','-v7.3');
