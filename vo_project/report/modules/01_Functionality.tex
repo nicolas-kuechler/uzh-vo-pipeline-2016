@@ -1,12 +1,32 @@
 \chapter{Functionality of the VO Pipeline}
-The following points summarize the pipelines functionality: The loading of the data set, the bootstrapping of initial key points and processing of subsequent frames. Periodically, multiple views help correct the structure and motion using bundle adjustment. Finally, an optional alignment to the ground truth (achieved through scaling, rotation and translation) can be performed to judge the deviation from the reference. The last two points are described further in sections \ref{bundle adjustment} and \ref{simulation}.
+The following points summarize the pipelines functionality. 
+Topics that are documented further in the code will be denoted by \coderef{filename} with the respective file name. 
+The loading of the data set, the bootstrapping of initial key points and processing of subsequent frames. 
+Periodically, multiple views help correct the structure and motion using bundle adjustment. 
+Finally, an optional alignment to the ground truth (achieved through scaling, rotation and translation) can be performed to judge the deviation from the reference. 
+The last two points are described further in sections \ref{bundle adjustment} and \ref{simulation}.
 
 \section{Bootstrapping}
-To initialize the pipeline, an initial point cloud must be triangulated between two key frames (frame 1 and 3) and the respective camera homographies must be found. Using the Harris corner detector, key points are extracted from images 1 and 3 and matched (using the SSD of the corresponding descriptor patches). In the following step, the camera homography of frame 3 is estimated by calculating and decomposing the essential matrix (since K is known) using the \emph{eight point algorithm}. For robustness, RANSAC is performed with a reprojection error tolerance of \ransacPixelTolerance and \ransacNumIterations iterations. The resulting inliers are then used to calculate the final landmarks and pose.      
+To initialize the pipeline, an initial point cloud is triangulated between two key frames (frame 1 and 3) and the respective camera homographies are estimated. 
+Using the \emph{Harris corner detector}, key points are extracted from images 1 and 3 and matched (using the SSD of the corresponding descriptor patches).
+In the following step, the camera homography of frame 3 is estimated by calculating and decomposing the essential matrix (since K is known) using the \emph{eight-point algorithm}. 
+For robustness, \emph{RANSAC} is performed with a reprojection error tolerance of \ransacPixelTolerance and \ransacNumIterations iterations. 
+The resulting inliers are then used to calculate the final landmarks and pose \coderef{initializePointCloudMono.m}.      
 
 \section{Frame Processing}
-As subsequent frames are processed in a Markovian fashion, meaning that information from the previous frame is sufficient to compute all necessary variables of the subsequent frame. \par
-When processing a new frame, first key points (matched with landmarks) are tracked from the previous image to the next image using the MATLAB implementation of a KLT tracker [ref]. Due to the large displacement of key points across images 3 pyramidal levels and a patch size of 31 x 31 pixels are used. \par
-In a second step the new camera homography is computed using the new 2D-3D correspondences from the tracked key points. This can be computed efficiently using the MATLAB function \emph{estimateWorldCameraPose}. This function uses the P3P algorithm in combination with the M-estimator sample consensus (MSAC) to remove outliers. Using only three points allows few iterations to achieve high confidence (??\%). Non-tracked and outlier key points are removed with their corresponding landmarks.\par
-Next new landmarks are triangulated from candidate key points which were tracked over several frames. Triangulation is performed between the track end and start. This means that every track starting postition with its corresponding homography are saved. New landmarks are triangulated asynchronously and only if the angle between the bearing vectors at the track start and end exceeds ??. Candidate tracks are removed if they cannot be tracked and landmarks are removed if their reprojection error exceeds ?? pixels or if they are triangulated behind the camera.\par
-This candidate loss through tracking and triangulation means that new candidate keypoints must be added continuously. ?? new candidate keypoints are extracted from each frame using a Harris corner detector. To achieve a more robust behavior, Harris corner extraction is suppressed in certain areas of the image (such as right next to an existing candidate keypoint).
+As subsequent frames are processed in a Markovian fashion, meaning that information from the previous frame is sufficient to compute all necessary variables of the subsequent frame \coderef{processFrame.m}. \par
+When processing a new frame, first key points (matched with landmarks) are tracked from the previous image to the next image using the MATLAB implementation of a \emph{Kanade-Lucas-Tomasi tracker (KLT)} \coderef{propagageState.m}. 
+Due to the large displacement of key points across images 3 pyramidal levels and a patch size of \trackerBlocksize x \trackerBlocksize pixels are used. \par
+In a second step the new camera homography is computed using the new 2D-3D correspondences between matched key points and landmarks. 
+This can be computed efficiently using the \emph{P3P algorithm} in conjunction with \emph{RANSAC} \coderef{localizationRANSAC.m}. 
+Using only three points allows for few iteration cycles (\ransacNumIterations cycles with a pixel tolerance of \ransacPixelTolerance). 
+Key points that are discarded by the \emph{KLT} tracker as well as outliers are removed together with their corresponding landmarks.\par
+
+Next, new landmarks are triangulated from candidate key points which have been tracked over several frames. 
+Tracks are discarded if they are lost by the \emph{KLT} tracker.
+Triangulation is performed between the track end point and start point. 
+New landmarks are triangulated asynchronously as soon as the angle between the bearing vectors at the track start point and end point exceeds \triangulationAngleThreshold degrees. 
+New landmarks are discarded if their reprojection error exceeds \triangulationMaxReprError pixels or if they are triangulated behind the camera \coderef{tryTriangulate.m}. \par 
+This candidate loss through tracking and triangulation means that new candidate key points must be added continuously. 
+\addCandidateEachFrame new candidate key points are extracted from each frame using a Harris corner detector. 
+To achieve a more robust behavior, the \emph{Harris score} is suppressed around existing key points before feature extraction \coderef{suppressExistingMatches.m}.

@@ -1,1 +1,33 @@
 \chapter{Performance of our VO Pipline}
+\label{performance}
+
+\section{Effect of Bundle Adjustment}
+- ref to fig of aligned trajectory w/ and w/o BA
+- timing 
+- discussion
+- Bundle Adjustment decreases the maximum framerate by a factor x
+- #toAdjustOrNotToAdjust
+
+\section{Error Analysis of Params}
+
+\subsection{error}
+- plots
+- discussion
+- example bullshit argument: as maximum reprojection error is increased the error grows as more outliers are included in the estimation of the landmarks and homographies.
+
+\subsection{timing}
+- plot (optional)
+- discussion
+- example bullshit argument: As can be seen the error declines with increasing ransac iterations. However, this trend is contrasted by a increasing operation burden on the CPU.
+
+
+
+
+
+
+As can be seen in Fig \ref{fig:overview} scale drift is a problem
+
+parameter:  nonmaximum\_supression\_radius,add\_candidate\_each\_frame,triangulate\_max\_repr\_error,critical\_kp,tracker\_max\_bidirectional\_error
+
+average orientation error: minimum: 1.97 maximum: 23.79, median: 2.89
+average location error: minimum: 6664.9 maximum: 23187.5 , median: 16059.0

@@ -33,12 +33,13 @@
 \usepackage{pdfpages}
 \usepackage{enumitem}
 \usepackage{tabularx}
+\usepackage{subfig}
 
-\newcommand{\HRule}[1]{\rule{\linewidth}{#1}}
 \onehalfspacing
 \setcounter{tocdepth}{5}
 \setcounter{secnumdepth}{5}
 \setlength{\parindent}{0pt}
+
 
 %-------------------------------------------------------------------------------
 % HEADER & FOOTER
@@ -98,6 +99,36 @@ Cyrill Halter: 13-928-171 }
 %
 % - add your matriculation number in the author part of the title
 %-------------------------------------------------------------------------------
+
+%-------------------------------------------------------------------------------
+% Parameter values
+%-------------------------------------------------------------------------------
+% VO + BA
+\def \criticalKpBA {50\,}
+\def \trackerMaxBidirectionalErrorBA {2.1\,}
+\def \ransacNumIterationsBA {2000\,}
+\def \baEveryNthFrame {4\,} 
+\def \baReplace {6\,}
+
+% VO
+\def \harrisPatchSize {9\,}
+\def \harrisKappa {0.08\,}
+\def \numKeypoints {800\,}
+\def \nonmaximumSupressionRadius {10\,}
+\def \descriptorRadius {13\,}
+\def \matchLambda {8\,}
+\def \triangulationAngleThreshold {3\,}
+\def \candidateCap {500\,}
+\def \addCandidateEachFrame {100\,}
+\def \triangulationMaxReprError {20\,}
+\def \criticalKp {0\,}
+\def \trackerMaxBidirectionalError {infinity\,}
+\def \trackerBlocksize {13\,}
+\def \ransacNumIterations {500\,}
+\def \ransacPixelTolerance {10\,}
+
+\newcommand{\coderef}[1]{[$\square$\kern-0.78em{$\equiv$}\:#1]\:}
+
 \input{modules/00_Introduction}
 \input{modules/01_Functionality}
 \input{modules/02_Additional_Features}
@@ -105,31 +136,6 @@ Cyrill Halter: 13-928-171 }
 \input{modules/04_Appendix}
 
 \end{document}
-
-%-------------------------------------------------------------------------------
-% Parameter values
-%-------------------------------------------------------------------------------
-% VO + BA
-\def \criticalKpBA {50}
-\def \trackerMaxBidirectionalErrorBA {2.1}
-\def \ransacNumIterationsBA {2000}
-
-% VO
-\def \harrisPatchSize {9}
-\def \harrisKappa {0.08}
-\def \numKeypoints {800}
-\def \nonmaximumSupressionRadius {10}
-\def \descriptorRadius {13}
-\def \matchLambda {8}
-\def \triangulationAngleThreshold {3}
-\def \candidateCap {500}
-\def \addCandidateEachFrame {100}
-\def \triangulationMaxReprError {20}
-\def \criticalKp {0}
-\def \trackerMaxBidirectionalError {infinity}
-\def \trackerBlocksize {13}
-\def \ransacNumIterations {500}
-\def \ransacPixelTolerance {10}
 
 %----------------------------------V., 2007. Oxidants in Chronficacy of lazarois and my3. \textit{Toxic Neuropathy Clinical Presentation.} [--------------------------------
 
