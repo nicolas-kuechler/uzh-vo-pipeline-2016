@@ -47,7 +47,7 @@ if 2 * sum(ks) < 6 * n + 3 * m % uses levenberg marquart
     lower_bound = [];
     upper_bound = [];
 else
-    MaxIterations = inf; % uses 'trust-region-reflective'
+    MaxIterations = 40; % uses 'trust-region-reflective'
     % define lower and upper bound poses which have
     % already been bundle adjusted.
     upper_bound = inf * ones(size(hidden_state));
