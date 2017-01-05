@@ -9,7 +9,7 @@
 % This is the modified version of the original Latex template from
 % aforementioned website.
 % 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \documentclass[12pt]{report}
 \usepackage[a4paper]{geometry}
@@ -17,6 +17,7 @@
 \usepackage{fancyhdr}
 \usepackage{lastpage}
 \usepackage{amsmath} 
+\usepackage{float} 
 \usepackage{graphicx, wrapfig, subcaption, setspace, booktabs}
 \usepackage[T1]{fontenc}
 \usepackage[font=small, labelfont=bf]{caption}
@@ -32,7 +33,6 @@
 \usepackage{pdfpages}
 \usepackage{enumitem}
 \usepackage{tabularx}
-
 
 \newcommand{\HRule}[1]{\rule{\linewidth}{#1}}
 \onehalfspacing
@@ -105,6 +105,31 @@ Cyrill Halter: 13-928-171 }
 \input{modules/04_Appendix}
 
 \end{document}
+
+%-------------------------------------------------------------------------------
+% Parameter values
+%-------------------------------------------------------------------------------
+% VO + BA
+\def \criticalKpBA {50}
+\def \trackerMaxBidirectionalErrorBA {2.1}
+\def \ransacNumIterationsBA {2000}
+
+% VO
+\def \harrisPatchSize {9}
+\def \harrisKappa {0.08}
+\def \numKeypoints {800}
+\def \nonmaximumSupressionRadius {10}
+\def \descriptorRadius {13}
+\def \matchLambda {8}
+\def \triangulationAngleThreshold {3}
+\def \candidateCap {500}
+\def \addCandidateEachFrame {100}
+\def \triangulationMaxReprError {20}
+\def \criticalKp {0}
+\def \trackerMaxBidirectionalError {infinity}
+\def \trackerBlocksize {13}
+\def \ransacNumIterations {500}
+\def \ransacPixelTolerance {10}
 
 %----------------------------------V., 2007. Oxidants in Chronficacy of lazarois and my3. \textit{Toxic Neuropathy Clinical Presentation.} [--------------------------------
 
