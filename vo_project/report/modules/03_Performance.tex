@@ -10,24 +10,67 @@
 
 \section{Error Analysis of Params}
 
-\subsection{error}
-- plots
-- discussion
-- example bullshit argument: as maximum reprojection error is increased the error grows as more outliers are included in the estimation of the landmarks and homographies.
+In order to do a thorough optimization, a total of 15 parameters would have to varied simultaneously. 
+This would lead to an intractable number of valid combinations. To curb the computational burden we proceeded to group the parameters into three main clusters:
 
-\subsection{timing}
-- plot (optional)
-- discussion
-- example bullshit argument: As can be seen the error declines with increasing ransac iterations. However, this trend is contrasted by a increasing operation burden on the CPU.
+\begin{itemize}
+    \item harris corner detection (harris\_kappa, harris\_patch\_size)
+    \item candidate adding (candidate\_cap, candidate\_add, nonmaximum\_supression\_radius)
+    \item repeated optimization with most sensitive parameters.
+\end{itemize}
 
+First, a sane parameter configuration was guessed for each cluster. Then, groups were fine tuned in a parallel simulation setup \coderef{simTaskScheduler.m]}. Parameters were selected whenever a significant impact on accuracy (deviation from ground truth, see chapter \ref{simulation}) and robustness (successful completion of simulation challenge with varying other parameters) was detected.
 
+\subsection{Harris Tuning}
+From a qualitative observation of the trajectories, we could observe that features detected with a patch size of 9 and a kappa of 0.08 result in low tracking loss when applied on the provided data sets.
 
+\subsection{Candidate Reinforcement Tuning (adding of candidates)} 
+Error analysis over 4 params: nonmaximum\_supression\_radius,candidate\_cap,surpress\_existing\_matches,add\_candidate_each\_frame.
 
+Results:
+\begin{itemize}
+    \item Suppress\_existing\_matches strongly improves the algorithm stability.
+    \item The candidate\_cap has negligible impact on the precision when above 500.
+    \item Large variation were found in nonmaximum\_supression_radius (selected for parameter tuning).
+    \item Large variations were found in add\_candidate\_each\_frame (selected for parameter tuning).
+\end{itemize}
 
+\subsection{Significant Parameter Tuning}  
+From empirical studies (trial and error) sensitive (high impact) parameters were identified and interesting ranges were selected for the final optimization.
 
-As can be seen in Fig \ref{fig:overview} scale drift is a problem
+The following parameters were considered especially relevant (as seen in the reinforcement tuning):
 
-parameter:  nonmaximum\_supression\_radius,add\_candidate\_each\_frame,triangulate\_max\_repr\_error,critical\_kp,tracker\_max\_bidirectional\_error
+\begin{itemize}
+    \item nonmaximum\_supression\_radius
+    \item add\_candidate\_each\_frame
+    \item triangulate\_max\_repr\_error
+    \item critical\_kp
+    \item tracker\_max\_bidirectional\_error
+\end{itemize}
+
+% Discussion:
+
+% Measure which are the best combinations --> do simulation for this cluster
+% Results - best combinations: (make table)
+%12, 150, 5, 100, 5 
+%10, 200, 5, 0, 2,1
+%10, 200, 5; 0, 5
+
+% How optimal are these results
 
 average orientation error: minimum: 1.97 maximum: 23.79, median: 2.89
 average location error: minimum: 6664.9 maximum: 23187.5 , median: 16059.0
+
+% Results - quotient between maximum and minimum  > 3 --> strong minimum
+
+% How robust are these results
+% Results - Histograms of failures and 100 (or 200 or 10) best --> robust and doesn't fail easily
+
+% --> in the end parallel discussion of rotation error.
+
+% Conclusion: optimization of parameters for rotation yield parameters which are not dominantly better than all others. Therefore rely on optimal parameters for location error.
+
+Scale drift is a problem that cannot be solved with parameter tuning and must be addressed with BA.
+
+
+
