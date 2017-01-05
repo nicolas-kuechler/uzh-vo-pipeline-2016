@@ -9,11 +9,23 @@ The additional data set was recorded in the 7th district of Zürich using a \emp
 
 \item \emph{Traffic:} Another factor that ads to the complexity of our data set is traffic. Both pedestrian and vehicle traffic were unavoidable during the recording which includes two pedestrians walking by directly in front of the camera at some point. Additionally, two stops at red lights were necessary.
 
-\item \emph{Unknowns} Preprocessing performed on the video recording by the smartphone automatically ads an unknown factor that may affect the functionality of our VO pipeline.
+\item \emph{Unknowns:} Preprocessing performed on the video recording by the smartphone automatically ads an unknown factor that may affect the functionality of our VO pipeline.
 \end{enumerate}
 
-\emph{1.} and \emph{3.} seem to be handled reasonably well by our VO pipeline implementation. Apart from some additional scale drift compared to the provided data sets, the estimated path looks decent both smoothness and direction wise. \emph{2.} however does seem to be an issue to some degree: While other vehicle traffic participants do not seem to interfere with the path estimation too much, two pedestrians passing by directly in front of the camera lead to the detection of some erroneous movement.
+\emph{1.} and \emph{3.} seem to be handled reasonably well by our VO pipeline implementation. The estimated path looks decent both smoothness and direction wise. \emph{2.} however does seem to be an issue to some degree: While other vehicle traffic participants do not seem to interfere with the path estimation too much, two pedestrians passing by directly in front of the camera lead to the detection of erroneous movement since almost all valid key points are lost due to occlusion.
 
+
+\begin{figure}[htp]
+
+\centering
+\includegraphics[width=.3\textwidth]{images/vespa_0014.png}\hfill
+\includegraphics[width=.3\textwidth]{images/vespa_0292.png}\hfill
+\includegraphics[width=.3\textwidth]{images/vespa_1072.png}
+\captionsetup{justification=centering}
+\caption{Frames from the Vespa data set: \\ \emph{1.} a normal frame, \emph{2.} slant while making turns, \emph{3.} pedestrians causing occlusions}
+\label{fig:vespa}
+
+\end{figure}
 
 \section{Bundle Adjustment}
 \label{bundle adjustment}
