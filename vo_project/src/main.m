@@ -118,7 +118,7 @@ if bundle_adjustment
     params.eWCP_confidence = 99.9;
     params.critical_kp = 50;
     params.tracker_max_bidirectional_error = 2.1;
-    params.ba_every_nth_frame = 4;
+    params.ba_every_nth_frame = 7;
 end
 
 % Bootstrap key frames
