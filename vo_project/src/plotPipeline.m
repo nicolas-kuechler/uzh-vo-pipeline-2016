@@ -38,25 +38,13 @@ else
 end
 
 
-% Create a uicontrol of type "text"
+%% Text Box with frame number
+
 mTextBox = uicontrol('style','text');
 set(mTextBox,'String',sprintf('Frame Number: %d',frame_num));
 set(mTextBox,'Units','normalized');
-set(mTextBox,'Position',[0.9,0.97,0.1,0.03]);
+set(mTextBox,'Position',[0.0,0.97,0.1,0.03]);
 set(mTextBox,'FontSize',12);
-
-% % To move the the Text Box around you can set and get the position of Text 
-% %Box itself
-% mTextBoxPosition = get(mTextBox,'Position')
-% % The array mTextBoxPosition has four elements
-% % [x y length height]
-% 
-% % Something that I find useful is to set the Position Units to Characters, 
-% %the default is pixels
-% set(mTextBox,'Units','characters')
-% % This means a Text Box with 3 lines of text will have a height of 3
-% 
-% mTextBoxPosition = [5,0,20,1];
 
 %% Plot image with currently available candidates and currently matched keypoints
 
