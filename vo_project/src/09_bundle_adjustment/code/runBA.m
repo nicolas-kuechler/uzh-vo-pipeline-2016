@@ -56,6 +56,15 @@ else
     % put bound on first two poses to make them consistent
     upper_bound(pose_indices) =  hidden_state(pose_indices);
     lower_bound(pose_indices) =  hidden_state(pose_indices);
+    
+    % constrain landmarks
+    l_tot = unique([lis{end}', lis{end-1}']);
+    upper_bound(6 * n + 3*l_tot - 2) =  hidden_state(6 * n + 3*l_tot - 2);
+    upper_bound(6 * n + 3*l_tot - 1) =  hidden_state(6 * n + 3*l_tot - 1);
+    upper_bound(6 * n + 3*l_tot - 0) =  hidden_state(6 * n + 3*l_tot - 0);
+    lower_bound(6 * n + 3*l_tot - 2) =  hidden_state(6 * n + 3*l_tot - 2);
+    lower_bound(6 * n + 3*l_tot - 1) =  hidden_state(6 * n + 3*l_tot - 1);
+    lower_bound(6 * n + 3*l_tot - 0) =  hidden_state(6 * n + 3*l_tot - 0);
 end
 
 options = optimoptions('lsqnonlin', 'MaxIterations', MaxIterations, 'JacobPattern', M,...
