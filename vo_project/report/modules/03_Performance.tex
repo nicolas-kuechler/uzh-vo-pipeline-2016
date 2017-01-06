@@ -2,6 +2,17 @@
 \label{performance}
 
 \section{Effect of Bundle Adjustment}
+
+As is shown in figure \ref{fig:BAeffect}, bundle adjustment has several positive effects on our VO pipeline:
+
+\begin{itemize}
+	\item Scale drift is reduced significantly.
+	\item The movement direction is retained more reliably.
+	\item The trajectory is substantially smoother.
+\end{itemize}
+
+These advantages come at the price of computing performance: VO with bundle adjustment uses about 40\% more computing time than VO without bundle adjustment.
+
 - ref to fig of aligned trajectory w/ and w/o BA
 - timing 
 - discussion
@@ -10,23 +21,23 @@
 
 \section{Error Analysis of Params}
 
-In order to do a thorough optimization, a total of 15 parameters would have to varied simultaneously. 
-This would lead to an intractable number of valid combinations. To curb the computational burden we proceeded to group the parameters into three main clusters:
+In order to do a thorough optimization, a total of 15 parameters would have to be varied simultaneously. 
+This would lead to an intractable number of valid combinations. To curb the computational burden we grouped the parameters into three main clusters:
 
-\begin{itemize}
+\begin{enumerate}
     \item Harris corner detection (harris\_kappa, harris\_patch\_size)
     \item candidate adding (candidate\_cap, candidate\_add, nonmaximum\_supression\_radius)
     \item repeated optimization with most sensitive parameters.
-\end{itemize}
+\end{enumerate}
 
-First, a sane parameter configuration was guessed for each cluster. Then, groups were fine tuned in a parallel simulation setup \coderef{simTaskScheduler.m}. Parameters were selected whenever a significant impact on accuracy (deviation from ground truth, see chapter \ref{simulation}) and robustness (successful completion of simulation challenge with varying other parameters) was detected.
+First, a sensible parameter configuration was guessed for each cluster. Then, groups were fine tuned in a parallel simulation setup \coderef{simTaskScheduler.m}. Parameters were selected whenever a significant impact on accuracy (deviation from ground truth, see chapter \ref{simulation}) and robustness (successful completion of simulation challenge with varying other parameters) was detected.
 
 \subsection{Harris Tuning}
 From a qualitative observation of the trajectories, we could observe that features detected with a patch size of 9 and a kappa of 0.08 result in low tracking loss when applied on the provided data sets.
 
 %warping = verwerfen
 \subsection{Candidate Reinforcement Tuning (adding of candidates)} 
-The goal of reinforcement tuning was to find a relation in between key point generation, warping and the overall pipeline performance. Tuning parameters were known to limit or boost key point generation or warping. A quantitative error analysis was performed for 4 parameters. The following impacts were measured:
+The goal of reinforcement tuning was to find a relation in between key point generation, discarding and the overall pipeline performance. Tuning parameters were known to limit or boost key point generation or discarding. A quantitative error analysis was performed for 4 parameters. The following impacts were measured:
 
 \begin{itemize}
     \item Suppress\_existing\_matches strongly improves the algorithm stability.
@@ -36,12 +47,12 @@ The goal of reinforcement tuning was to find a relation in between key point gen
 \end{itemize}
 
 \subsection{Significant Parameter Tuning}  
-From empirical studies (trial and error) sensitive (high impact) parameters were identified and interesting ranges were selected for the final optimization. 
-The parameters in table \ref{table:significant-param-tuning} were considered most relevant (as seen in the reinforcement tuning). 
-As can be seen in figure \ref{fig:error_histogram}, the variance of the orientation error is too small to make a significant statement.
-Due to this the location error was considered for the evaluation.
+Through trial and error, high impact parameters were identified and interesting ranges were selected for the final optimization. 
+The parameters in table \ref{table:significant-param-tuning} were considered to be most relevant (as seen in the reinforcement tuning). 
+As can be seen in figure \ref{fig:error_histogram}, the variance of the orientation error is too small to be used to to make a significant statement.
+Due to this, only the location error was considered for the evaluation.
 Optimal parameters were selected systematically by first evaluating the best 10 results (see figure \ref{fig:best10}).
-Then, we cross verified the parameter tendency with the best 200 results to verify the trust-ability of the assumption. (see figure \ref{fig:best200}). The last step is to test the parameter robustness (see figure \ref{fig:exceptions}). 
+We then cross verified the parameter tendency with the best 200 results to reassure our confidence in the assumption. (see figure \ref{fig:best200}). The last step is to test the parameter robustness  by counting the occurrences of exceptions(see figure \ref{fig:exceptions}). 
 Scale drift is a problem that cannot be solved with parameter tuning and must be addressed with BA.
 
 \begin{table}[]
