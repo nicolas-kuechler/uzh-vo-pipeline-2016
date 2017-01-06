@@ -40,9 +40,10 @@ end
 
 % Create a uicontrol of type "text"
 mTextBox = uicontrol('style','text');
-set(mTextBox,'String',sprintf('Frame Number: %4.0f',frame_num));
-set(mTextBox,'Units','characters');
-set(mTextBox,'Position',[5,5,20,1]);
+set(mTextBox,'String',sprintf('Frame Number: %d',frame_num));
+set(mTextBox,'Units','normalized');
+set(mTextBox,'Position',[0.9,0.97,0.1,0.03]);
+set(mTextBox,'FontSize',12);
 
 % % To move the the Text Box around you can set and get the position of Text 
 % %Box itself
@@ -84,7 +85,7 @@ axis([0 20 0 1000]);
 title('Number of Keypoints');
 legend('Landmarks', 'Candidates');
 hold off;
-legend('Candidate KP','Matched KP')
+legend('Matched KP','Candidate KP')
 
 %% Plot full trajectory
 subplot(2,4,6) 
@@ -110,6 +111,7 @@ pbaspect([4 1 5]);
 title('Trajectory over the last 20 Frames and Landmarks');
 hold off;
 
+legend('Trajectory','Matched KP','Location','north');
 
 end
 
