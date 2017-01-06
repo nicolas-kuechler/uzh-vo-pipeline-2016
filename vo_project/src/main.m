@@ -226,7 +226,7 @@ for i = range
     % plot results
     num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
     num_matched_kp_history = [num_matched_kp_history(2:end) size(next_state.matched_kp,2)];
-    fig_num = plotPipeline(aligned_locations, aligned_pt_cloud, next_state, next_image,fig_num, num_candidates_history, num_matched_kp_history);
+    fig_num = plotPipeline(aligned_locations, aligned_pt_cloud, next_state, next_image,fig_num, num_candidates_history, num_matched_kp_history, i);
     
     % Makes sure that plots refresh.    
     pause(0.01)
