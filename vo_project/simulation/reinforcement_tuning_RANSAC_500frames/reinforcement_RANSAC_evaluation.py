@@ -45,7 +45,7 @@ loc_err_i = -2
 ori_err_i = -1
 
 num_params = 5
-bestN = 10
+bestN = 200
 
 #####################################
 # data preparation
@@ -75,7 +75,7 @@ results = results [results[:,-3]== 1] #success
 bestN_loc_err = results[results[:,loc_err_i].argsort()][0:bestN]
 bestN_ori_err = results[results[:,ori_err_i].argsort()][0:bestN]     
 
-data =  exceptions                       
+data =  bestN_loc_err                       
                         
                         
 #####################################
@@ -151,6 +151,42 @@ for i in range(num_params):
     xaxis = fig['layout']['xaxis{}'.format(plotNumStr)]
     xaxis.update(title=p_arr_n[i])
     xaxis.update(type=param_scale[i])
+    xaxis['titlefont'].update(size=20)
 
 offline.plot(fig, filename="param_histograms.html", auto_open=False)    
               
+
+#####################################
+# histograms
+#####################################  
+plots = np.empty((2), dtype=object)
+
+plots[0] = go.Histogram(
+        x=results[results[:,loc_err_i].argsort()][:,loc_err_i]
+    )
+
+plots[1] = go.Histogram(
+        x=results[results[:,ori_err_i].argsort()][0:-1,ori_err_i]
+    )
+
+fig = tools.make_subplots(rows=1, cols=2)
+
+fig.append_trace(plots[0], 1, 1)
+fig.append_trace(plots[1], 1, 2)
+
+fig['layout']['xaxis1'].update(title="average location error")
+fig['layout']['xaxis2'].update(title="average orientation error")
+
+fig['layout']['yaxis1'].update(title="# occurences")
+fig['layout']['yaxis2'].update(title="# occurences")
+
+fig['layout']['yaxis1'].update(title="# occurences")
+fig['layout']['yaxis2'].update(title="# occurences")
+
+
+fig['layout']['xaxis1']['titlefont'].update(size=25)
+fig['layout']['xaxis2']['titlefont'].update(size=25)
+fig['layout']['yaxis1']['titlefont'].update(size=25)
+fig['layout']['yaxis2']['titlefont'].update(size=25)
+
+offline.plot(fig, filename="error_histograms.html", auto_open=False)    
