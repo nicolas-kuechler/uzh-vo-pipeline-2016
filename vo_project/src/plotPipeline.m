@@ -46,8 +46,9 @@ pbaspect([1 1 1]);
 title('Current Image');
 hold off;
 
+legend('tracked keypoints','matched keypoints')
 
-%% Plot number of tracked landmarks over the last 20 frames
+%% Plot number of tracked landmarks and candidates over the last 20 frames
 subplot(2,4,5)
 cla();
 hold on;
@@ -55,9 +56,10 @@ plot(num_matched_kp_history,'g-','LineWidth',2);
 plot(num_candidates_history,'b-.','LineWidth',2);
 pbaspect([4 5 1]);
 axis([0 20 0 1000]);
-title('Tracked key points');
+title('Number of Keypoints');
 legend('Landmarks', 'Candidates');
 hold off;
+legend('matched keypoints','tracked keypoints')
 
 %% Plot full trajectory
 subplot(2,4,6) 
