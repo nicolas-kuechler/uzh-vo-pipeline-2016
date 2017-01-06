@@ -1,4 +1,4 @@
-function [ fig_num ] = plotPipeline( locations, pt_cloud, state, img, fig_num, num_candidates_history, num_matched_kp_history )
+function [ fig_num ] = plotPipeline( locations, pt_cloud, state, img, fig_num, num_candidates_history, num_matched_kp_history, frame_num )
 %PLOTPIPELINE Summary:
 %   Creates 4 plots:
 %   - current image with available candidate and tracked keypoints
@@ -43,7 +43,8 @@ plot(candidates(1,:),candidates(2,:),'bx', 'Linewidth', 2, 'Markersize', 3);
 plot(matched_kp(1,:),matched_kp(2,:),'gx', 'Linewidth', 2);
 daspect([1 1 1]);
 pbaspect([1 1 1]);
-title('Current Image');
+title(['Frame' num2str(frame_num)]);
+legend('Candidates', 'Landmarks');
 hold off;
 
 
@@ -80,7 +81,7 @@ plot3(locations(1,plot_last:end),locations(2,plot_last:end),locations(3,plot_las
 pcshow(pt_cloud','VerticalAxis','y','VerticalAxisDir','down','MarkerSize',45);
 view([0,-1,0]);
 pbaspect([4 1 5]);
-title('Trajectory over the last 20 Frames and Landmarks');
+title('Trajectory and Landmarks over the last 20 Frames and Landmarks');
 hold off;
 end
 
