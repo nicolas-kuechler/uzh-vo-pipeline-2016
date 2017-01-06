@@ -85,6 +85,9 @@ title('Full Trajectory');
 hold off;
 
 %% Plot pointcloud and trajectory over the last 20 frames
+
+
+scale = norm(locations(:,end) - locations(:,end - 1));
 subplot(2,4,[3,4,7,8])
 plot_last = size(locations,2) - 20;
 if plot_last < 1
@@ -96,10 +99,13 @@ plot3(locations(1,plot_last:end),locations(2,plot_last:end),locations(3,plot_las
 pcshow(pt_cloud','VerticalAxis','y','VerticalAxisDir','down','MarkerSize',45);
 view([0,-1,0]);
 pbaspect([4 1 5]);
+xlim([locations(1,end) - 50*scale, locations(1,end) + 50*scale])
+ylim([locations(2,end) - 50*scale, locations(2,end) + 50*scale])
+zlim([locations(3,end) - 50*scale, locations(3,end) + 50*scale])
 title('Trajectory over the last 20 Frames and Landmarks');
 hold off;
 
-legend('Trajectory','Matched KP','Location','north');
+legend('Trajectory','Matched KP','Location','northeast');
 
 end
 
