@@ -3,7 +3,7 @@
 \label{dataset}
 
 The additional data set was recorded in the 7th district of Zürich using a \emph{Huawei Nexus 6p} smartphone strapped to the luggage rack of a \emph{Vespa} motorcycle. 
-Compared to the data sets provided to us it includes some additional difficulties that are handled by our VO implementation with varying success:\\
+Compared to the data sets provided to us it includes some additional difficulties that are handled by our VO implementation with varying success:
 
 \begin{enumerate}
 \item \emph{Additional Camera Movement:} Due to the size and weight of the motorcycle, the camera is affected by a much larger amount of vibration originating from the motor. 
@@ -51,11 +51,6 @@ Using BA, scale drift can be effectively counteracted as Fig. \ref{fig:BAeffect}
 \label{simulation}
 
 For a stable operation of the VO pipeline, optimized parameters must be chosen to control detection and matching of new key points, triangulation etc. 
-We determined these parameters by running a simulation \coderef {simMain.m, simTaskScheduler.m} on a benchmark data set (\emph{KITTI}) over various parameter choices and comparing the aligned \coderef{alignToGroundTruth.m} trajectories to the ground truth. The orientation and location errors were defined by the following formulae:
-
-\begin{equation*}e_l = \underset{R,t,s}{\min} \sum_i (sR \cdot p_{est, i} + t - p_{GT, i})^2\end{equation*}
-\begin{equation*}e_o = \sum_i \text{rotMatToRotVec}(R^* \cdot R_{est,i} \cdot R_{GT, i}^T)^2\end{equation*}
-
-Where $i$ is the index along the trajectory, $e_l$ is the location error, $e_o$ is the orientation error, $p_{GT}$ and $R_{GT}$ are the ground truth position and rotation, $p_{est}$ and $R_{est}$ are the estimated position and rotation and $R^*$ is the argument for R when $e_p$ is minimal. The parameters $s$, $R$ and $t$ describe a generic similarity transformation. The function \emph{rotMatToRotVec} transforms the rotation matrix into a rotation vector of the form $\phi = \theta n$ \coderef{rotMatToRotVec.m}.  
+We determined these parameters by running a simulation \coderef {simMain.m, simTaskScheduler.m} on a benchmark data set (\emph{KITTI}) over various parameter choices and comparing the aligned \coderef{alignToGroundTruth.m} trajectories to the ground truth. This was done by calculating the total deviation in orientation and the total deviation in location.
 Using these error metrics a detailed error analysis was performed over the first 500 frames. 
 More information on this can be found in section \ref{performance}.
