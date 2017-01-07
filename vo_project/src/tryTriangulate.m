@@ -39,7 +39,6 @@ angles = 180/pi * acos(sum(u_norm .* v_norm));
 tri = angles > params.triangulation_angle_threshold;
 
 % triangulate all eligible points 
-cameraParams = cameraParameters('IntrinsicMatrix',K');
 new_3d_pt = zeros(3, sum(tri));
 repr_Errors = zeros(1, sum(tri));
 triangulation_indices = find(tri); 
@@ -47,11 +46,9 @@ counter = 1;
 
 for i = triangulation_indices
     T_i = reshape(candidates_start_pose(:, i), 3, 4); 
-    cameraMatrix1 = cameraMatrix(cameraParams, T_i(:,1:3)', T_i(:,4));
-    cameraMatrix2 = cameraMatrix(cameraParams, T(:,1:3)', T(:,4));
 
     [worldPoint, reprojectionError] = triangulate(candidates_current(:,i)', ...
-        candidates_start(:,i)', cameraMatrix2, cameraMatrix1);
+        candidates_start(:,i)', T' * K', T_i' * K');
 
     repr_Errors(:,counter) = reprojectionError;
     new_3d_pt(:,counter) = worldPoint';

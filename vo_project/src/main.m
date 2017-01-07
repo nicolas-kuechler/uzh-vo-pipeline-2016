@@ -155,6 +155,7 @@ range = (bootstrap_frames(2)+1):last_frame;
 prev_img = img1;
 
 %% Set up the movie.
+tic
 for i = range
     fprintf('\n\nProcessing frame %d\n=====================\n', i);
     if dataset_id == 0
@@ -229,8 +230,11 @@ for i = range
     fig_num = plotPipeline(aligned_locations, aligned_pt_cloud, next_state, next_image,fig_num, num_candidates_history, num_matched_kp_history, i);
     
     movie_cell{1,i-1} = toc;
-    movie_cell{2,i} = getframe(fig_num);
+    movie_cell{2,i} = getframe(gcf);
     tic;
+    if i > 1000
+        break;
+    end
     
     % Makes sure that plots refresh.    
     pause(0.01)
@@ -239,3 +243,4 @@ for i = range
     prev_img = next_image;
     prev_state = next_state;
 end
+save('movie_VO.mat', 'movie_cell', '-v7.3');
