@@ -1,11 +1,15 @@
 %% Workspace Preparation
-
 clc;
 clear all;
 close all;
-
 addpath(genpath('./'));
 movie_cell = cell(2,4540);
+
+
+% movie params
+multiplier = 5;
+movie_file_name = 'movie_BA.mov';
+max_frame = 2000;
 
 %% Configuration Section
 
@@ -236,7 +240,7 @@ for i = range
     movie_cell{1,i-1} = toc;
     movie_cell{2,i} = getframe(gcf);
     tic;
-    if i > 1000
+    if i > max_frame
         break;
     end
     
@@ -247,4 +251,4 @@ for i = range
     prev_img = next_image;
     prev_state = next_state;
 end
-save('movie_BA.mat', 'movie_cell', '-v7.3');
+my_save_movie(movie_file_name, multiplier, movie_cell);
