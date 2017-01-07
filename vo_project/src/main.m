@@ -10,7 +10,7 @@ movie_cell = cell(2,4540);
 %% Configuration Section
 
 dataset_id = 0; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
-bundle_adjustment = false; 
+bundle_adjustment = true; 
 align_to_ground_truth = false;
 
 kitti_path = '../data/kitti';
@@ -113,11 +113,14 @@ params = struct('harris_patch_size', 9, ...
                 'ransac_pixel_tolerance', 10);
 
 % Optimize parameters when bundle adjustment is active
-if bundle_adjustment
-    params.ransac_num_iterations = 2000;
+if bundle_adjustment 
+    params.triangulation_angle_threshold = 4;
+    params.add_candidate_each_frame = 100;
+    params.triangulate_max_repr_error = 20; 
+    params.ransac_num_iterations = 500;
     params.runBA = true;
     params.critical_kp = 50;
-    params.tracker_max_bidirectional_error = 2;
+    params.tracker_max_bidirectional_error = 5;
     params.ba_every_nth_frame = 4;
 end
 
