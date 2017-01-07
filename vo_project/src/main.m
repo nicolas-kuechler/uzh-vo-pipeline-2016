@@ -5,11 +5,12 @@ clear all;
 close all;
 
 addpath(genpath('./'));
+movie_cell = cell(2,4540);
 
 %% Configuration Section
 
 dataset_id = 0; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
-bundle_adjustment = true; 
+bundle_adjustment = false; 
 align_to_ground_truth = false;
 
 kitti_path = '../data/kitti';
@@ -226,6 +227,10 @@ for i = range
     num_candidates_history = [num_candidates_history(2:end) size(next_state.candidates,2)];
     num_matched_kp_history = [num_matched_kp_history(2:end) size(next_state.matched_kp,2)];
     fig_num = plotPipeline(aligned_locations, aligned_pt_cloud, next_state, next_image,fig_num, num_candidates_history, num_matched_kp_history, i);
+    
+    movie_cell{1,i-1} = toc;
+    movie_cell{2,i} = getframe(fig_num);
+    tic;
     
     % Makes sure that plots refresh.    
     pause(0.01)
