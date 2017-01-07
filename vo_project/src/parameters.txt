@@ -1,0 +1,64 @@
+% This is an extensive list of parameters that are used in the pipeline
+
+#?harris_patch_size:
+size of patch over which intensity gradient is convoluted
+
+#?harris_kappa:
+parameter controlling harris score calculation
+
+#?num_keypoints
+number of key points which are computed during bootstrapping
+ 
+#?nonmaximum_supression_radius
+radius of suppression after selecting key point from harris score map
+
+# descriptor_radius
+radius of the descriptor patch used for matching keypoints during bootstrapping
+
+# match_lambda
+heuristic which discards matches which are not strong enough during bootstrapping
+
+# triangulation_angle_threshold
+angle threshold between bearing vectors for candidate key points at which
+triangulation takes place. 
+
+# surpress_existing_matches
+a flag controlling whether harris scores should be suppressed by existing 
+matched key points before new keypoint selection.
+
+# candidate_cap
+maximum number of tracked candidates
+
+# add_candidate_each_frame
+number of candidates that are added in each frame
+
+# triangulate_max_repr_error
+maximum average reprojection error that is allowed after triangulating
+candidates. Landmarks with higher errors are discarded.
+
+# runBA
+flag controlling whether bundle adjustment should take place or not
+
+# alignment
+flag controlling whether ground truth alignment should take place or not
+
+# critical_kp
+If matched keypoints fall below this value newly triangulated landmarks
+with too high reprojection errors are no longer discarded. 
+
+# tracker_max_bidirectional_error
+Maximum allowable error in KLT tracking for key points to still be considered
+tracked 
+
+# tracker_blocksize
+pixel block around tracked key point used to determine the transformation
+of the KLT tracker
+
+# ransac_num_iterations
+number of iterations run by p3p RANSAC
+
+# ransac_pixel_tolerance
+inlier tolerance for p3p RANSAC
+
+#?ba_frequency
+frequency of BA in frames

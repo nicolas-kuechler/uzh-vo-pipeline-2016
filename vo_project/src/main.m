@@ -5,11 +5,10 @@ close all;
 addpath(genpath('./'));
 movie_cell = cell(2,4540);
 
-
 % movie params
 multiplier = 5;
-movie_file_name = 'movie_BA.mov';
-max_frame = 2000;
+movie_file_name = 'movie_VO.mov';
+max_frame = 5000;
 
 %% Configuration Section
 
@@ -120,7 +119,6 @@ params = struct('harris_patch_size', 9, ...
 if bundle_adjustment 
     params.candidate_cap = 700;
     params.add_candidate_each_frame = 200;
-    params.eWCP_max_repr_error = 1;
     params.runBA = true;
     params.critical_kp = 20;
     params.tracker_max_bidirectional_error = 4;
