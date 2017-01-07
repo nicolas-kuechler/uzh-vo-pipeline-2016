@@ -125,6 +125,7 @@ if bundle_adjustment
     params.ransac_pixel_tolerance = 10;
     params.eWCP_confidence = 99;
     params.triangulate_max_repr_error = 1;
+    params.ba_frequency = 4;
 end
 
 % Bootstrap key frames
@@ -180,7 +181,7 @@ for i = range
         assert(false);
     end
     
-    if params.runBA && mod(i, params.ba_every_nth_frame) == 1
+    if params.runBA && mod(i, params.ba_frequency) == 1
         % refine poses and point cloud
         hidden_state = runBA(prev_state.hidden_state, prev_state.observations, K);
         n = prev_state.observations(1);
@@ -249,4 +250,4 @@ for i = range
     prev_img = next_image;
     prev_state = next_state;
 end
-save('movie_VO.mat', 'movie_cell', '-v7.3');
+save('movie_BA.mat', 'movie_cell', '-v7.3');
