@@ -65,6 +65,21 @@ if ~isempty(candidates_prev)
     candidates_start = candidates_start(:, point_validity);
     candidates_start_pose = candidates_start_pose(:, point_validity);
     
+    %TEST NKè
+    nKp = size(curr_matched_kp,2);
+    if nKp < 100
+        params.triangulation_angle_threshold = 1.5;
+    elseif nKp < 200
+        params.triangulation_angle_threshold = 2;
+    elseif nKp < 300
+        params.triangulation_angle_threshold = 4;
+    else
+        params.triangulation_angle_threshold = 10;
+    end
+    
+    %TEST END
+    
+    
     % Try to triangulate points
     kp_critical = size(curr_matched_kp, 2) < params.critical_kp;
     [new_pt_cloud, new_matched_kp, remain] = ...

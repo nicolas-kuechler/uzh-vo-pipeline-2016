@@ -120,6 +120,9 @@ if bundle_adjustment
     params.ba_every_nth_frame = 3;
     params.triangulate_max_repr_error = 4;
     params.ransac_pixel_tolerance = 4;
+    params.triangulation_angle_threshold = 2;
+    params.candidate_cap = 500;
+    params.add_candidate_each_frame= 150;
 end
 
 % Bootstrap key frames
