@@ -118,14 +118,11 @@ if bundle_adjustment
     params.add_candidate_each_frame = 200;
     params.eWCP_max_repr_error = 1;
     params.runBA = true;
-    params.critical_kp = 50;
-    params.tracker_max_bidirectional_error = 1;
-    params.tracker_blocksize = 13;
-    params.ransac_num_iterations = 250;
-    params.ransac_pixel_tolerance = 10;
-    params.eWCP_confidence = 99;
-    params.triangulate_max_repr_error = 1;
-    params.ba_frequency = 4;
+    params.critical_kp = 20;
+    params.tracker_max_bidirectional_error = 4;
+    params.ba_frequency = 3;
+    params.triangulate_max_repr_error = 4;
+    params.ransac_pixel_tolerance = 4;
 end
 
 % Bootstrap key frames
