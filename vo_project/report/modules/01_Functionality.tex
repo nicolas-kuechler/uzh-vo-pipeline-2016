@@ -1,24 +1,24 @@
-\chapter{Functionality of the VO Pipeline}
-The following points summarize the pipelines functionality. 
+\chapter{Functionality}
+The following points summarize the pipeline's functionality. 
 Topics that are documented further in the code will be denoted by \coderef{filename} with the respective file name.
 
 \section{Bootstrapping}
 To initialize the pipeline, an initial point cloud is triangulated between two key frames (frame 1 and 3) and the respective camera homographies are estimated. 
 Using the \emph{Harris corner detector}, key points are extracted from images 1 and 3 and matched (using the SSD of the corresponding descriptor patches).
-In the following step, the camera homography of frame 3 is estimated by calculating and decomposing the essential matrix (since K is known) using the \emph{eight-point algorithm}. 
+In the following step, the camera homography of frame 3 is estimated by calculating and decomposing the essential matrix using the \emph{eight-point algorithm} (since K is known). 
 For robustness, \emph{RANSAC} is performed with a reprojection error tolerance of \ransacPixelTolerance and \ransacNumIterations iterations. 
 The resulting inliers are then used to calculate the final landmarks and pose \coderef{initializePointCloudMono.m}.      
 
 \section{Frame Processing}
-As subsequent frames are processed in a Markovian fashion, meaning that information from the previous frame is sufficient to compute all necessary variables of the subsequent frame \coderef{processFrame.m}. \par
+Subsequent frames are processed in a Markovian fashion, meaning that information from the previous frame is sufficient to compute all necessary variables of the next frame \coderef{processFrame.m}. \par
 When processing a new frame, first key points (matched with landmarks) are tracked from the previous image to the next image using the MATLAB implementation of a \emph{Kanade-Lucas-Tomasi tracker (KLT)} \coderef{propagageState.m}. 
-Due to the large displacement of key points across images 3 pyramidal levels and a patch size of \trackerBlocksize x \trackerBlocksize pixels are used. \par
+Due to the large displacement of key points across images, 3 pyramidal levels and a patch size of \trackerBlocksize x \trackerBlocksize pixels are used. \par
 In a second step the new camera homography is computed using the new 2D-3D correspondences between matched key points and landmarks. 
 This can be computed efficiently using the \emph{P3P algorithm} in conjunction with \emph{RANSAC} \coderef{localizationRANSAC.m}. 
 Using only three points allows for few iteration cycles (\ransacNumIterations cycles with a pixel tolerance of \ransacPixelTolerance). 
 Outliers and key points that are discarded by the \emph{KLT} tracker are removed together with their corresponding landmarks.\par
 
-Next, new landmarks are triangulated from candidate key points which have been tracked over several frames. 
+Next, new landmarks are triangulated from candidate key point tracks which have been tracked over several frames. 
 Tracks are discarded if they are lost by the \emph{KLT} tracker.
 Triangulation is performed between the track end point and start point. 
 New landmarks are triangulated asynchronously as soon as the angle between the bearing vectors at the track start point and end point exceeds \triangulationAngleThreshold degrees. 

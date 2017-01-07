@@ -1,68 +1,68 @@
-\chapter{Performance of our VO Pipline}
+\chapter{Performance}
 \label{performance}
-
-\section{Effect of Bundle Adjustment}
-
-As is shown in figure \ref{fig:BAeffect}, bundle adjustment has several positive effects on our VO pipeline:
-
-\begin{itemize}
-	\item Scale drift is reduced significantly.
-	\item The movement direction is retained more reliably.
-	\item The trajectory is substantially smoother.
-\end{itemize}
-
-These advantages come at the price of computing performance: VO with bundle adjustment uses about 40\% more computing time than VO without bundle adjustment.
-
-- ref to fig of aligned trajectory w/ and w/o BA
-- timing 
-- discussion
-- Bundle Adjustment decreases the maximum framerate by a factor x
-- toAdjustOrNotToAdjust
 
 \section{Error Analysis of Params}
 
 In order to do a thorough optimization, a total of 15 parameters would have to be varied simultaneously. 
-This would lead to an intractable number of valid combinations. To curb the computational burden we grouped the parameters into three main clusters:
+Brief descriptions of these parameters can be found in \emph{parameters.txt} \coderef{parameters.txt}.
+Such a large number of variables, however, leads to an intractable search space for optimization. 
+To curb the computational burden we segmented parameter selection into a preliminary simulation step \coderef{simTaskScheduler.m} which identified sensitive and non-sensitive parameters and a fine tuning step which investigated these parameters further. 
+During the analysis the following error metrics was used to compare trajectories.
 
-\begin{enumerate}
-    \item Harris corner detection (harris\_kappa, harris\_patch\_size)
-    \item candidate adding (candidate\_cap, candidate\_add, nonmaximum\_supression\_radius)
-    \item repeated optimization with most sensitive parameters.
-\end{enumerate}
+\begin{equation*}LE = \underset{R,t,s}{\min} \sum_i (s R \cdot p_{est, i} + t - p_{GT, i})^2\end{equation*}
+\begin{equation*}OE = \sum_i \text{rotMatToRotVec}(R^* \cdot R_{est,i} \cdot R_{GT, i}^T)^2\end{equation*}
 
-First, a sensible parameter configuration was guessed for each cluster. Then, groups were fine tuned in a parallel simulation setup \coderef{simTaskScheduler.m}. Parameters were selected whenever a significant impact on accuracy (deviation from ground truth, see chapter \ref{simulation}) and robustness (successful completion of simulation challenge with varying other parameters) was detected.
+Where $i$ is the index along the trajectory, $LE$ is the location error, $OE$ is the orientation error, $p_{GT}$ and $R_{GT}$ are the ground truth position and rotation, $p_{est}$ and $R_{est}$ are the estimated position and rotation and $R^*$ is the argument for R when $LE$ is minimal. 
+The parameters $s$, $R$ and $t$ describe a generic similarity transformation. 
+The function \emph{rotMatToRotVec} transforms the rotation matrix into a rotation vector of the form $\phi = \theta n$ \coderef{rotMatToRotVec.m}.
 
-\subsection{Harris Tuning}
-From a qualitative observation of the trajectories, we could observe that features detected with a patch size of 9 and a kappa of 0.08 result in low tracking loss when applied on the provided data sets.
+\section{Preliminary Simulations}
 
-%warping = verwerfen
-\subsection{Candidate Reinforcement Tuning (adding of candidates)} 
-The goal of reinforcement tuning was to find a relation in between key point generation, discarding and the overall pipeline performance. Tuning parameters were known to limit or boost key point generation or discarding. A quantitative error analysis was performed for 4 parameters. The following impacts were measured:
+First, a sensible parameter configuration was guessed for each cluster. 
+Then groups were fine tuned either manually or in simulation  
+Parameters which showed an increase in accuracy (deviation from ground truth, see chapter \ref{simulation}) and robustness (successful completion of run with varying other parameters) were selected at each step.
 
-\begin{itemize}
-    \item Suppress\_existing\_matches strongly improves the algorithm stability.
-    \item The candidate\_cap has negligible impact on the precision when above 500.
-    \item Large variation was found in nonmaximum\_supression\_radius (selected for parameter tuning).
-    \item Large variation was found in add\_candidate\_each\_frame (selected for parameter tuning).
-\end{itemize}
+\medskip
 
-\subsection{Significant Parameter Tuning}  
-Through trial and error, high impact parameters were identified and interesting ranges were selected for the final optimization. 
-The parameters in table \ref{table:significant-param-tuning} were considered to be most relevant (as seen in the reinforcement tuning). 
-As can be seen in figure \ref{fig:error_histogram}, the variance of the orientation error is too small to be used to to make a significant statement.
-Due to this, only the location error was considered for the evaluation.
-Optimal parameters were selected systematically by first evaluating the best 10 results (see figure \ref{fig:best10}).
-We then cross verified the parameter tendency with the best 200 results to reassure our confidence in the assumption. (see figure \ref{fig:best200}). The last step is to test the parameter robustness  by counting the occurrences of exceptions(see figure \ref{fig:exceptions}). 
-Scale drift is a problem that cannot be solved with parameter tuning and must be addressed with BA.
+Good Harris parameters (patch size = 9 and $\kappa$ =  0.08) where identified with low tracking loss. 
+Moreover, the maximal number of candidates was seen to have low impact above 500. 
+The sensitive parameters and ranges were narrowed down to 5 and are presented in table \ref{table:significant-param-tuning}.
 
-\begin{table}[]
+\subsection{Parameter Fine Tuning}  
+
+In this step the parameters above parameters were varied in their ranges, while the other parameters were held constant and the OE and LE were recorded. 
+1000 different combinations were tested in total and their results are shown in an error histogram in figure \ref{fig:error_histogram}. 
+While the LE exhibits large spread ranging from a maximum of 23187 to a minimum of 6664.9 the orientation error has much smaller spread. 
+This shows that the location error is a much better indicator for quality of the trajectory than the OE so from here on only LE will be discussed.
+In table \ref{table:significant-param-tuning} the three best parameter combinations can be seen. 
+They have very low errors compared to the worst case and thus constitute strong optima in the search space.
+To compare the robustness of these candidates it is necessary to see how well the algorithm performs for similar parameter combinations. 
+For this purpose histograms with the 10 best and 200 best parameters were constructed and are shown in figure \ref{fig:best10} and \ref{fig:best200}. 
+Each colored histogram represents a distribution of 10 data points for a particular parameter. 
+It can be seen that \emph{triangulate\_max\_repr\_error} is very robust as 50\% (5 out of 10) of the top 10 share this value. 
+It therefore makes sense that all top 3 candidates share this value. 
+Also with \emph{nonmaximum\_suppression\_radius} all top 3 share parameters with the majorities from the top 10. 
+This trend is further supported by the top 200 histograms.
+The parameter \emph{tracker\_max\_bidirectional\_error} is shared by the top 3 and top 10. 
+If we compare \emph{critical\_kp} we see that although two of the top three share the same value as the majority in the top 10 the best value comes with a value of 100.
+This can be explained by the fact that in the KITTI data set the second curve contains a dark patch which makes it hard to track key points. 
+If there is no safety net many runs will just fail because they have too few landmarks to perform localization. 
+A histogram with all the failing runs illustrates this point in figure  \ref{fig:exceptions}. 
+It is possible to see that a parameter value of 0 leads to the majority of the exceptions which leads us to believe that this value is not robust although it may be optimal. 
+The final parameter is \emph{add\_candidate\_each\_frame} which is robust to failure for all top 3 although not optimal for the best candidate.
+
+\medskip
+
+Due to its optimality and robustness against failure the best combination (see figure \ref{table:significant-param-tuning}) was chosen.
+
+\begin{table}[htp]
 	\centering
-	\caption{Significant parameter tuning: best three results. The maximum average location error was 23187, the minimal error 6664.9 and the median was 16059.0. }
+	\caption{Parameter Fine Tuning: best three parameter combinations and their respective location error (LE). $LE_{max}$ : 23187, $LE_{min}$: 6664.9}
 	\label{table:significant-param-tuning}
 	\begin{tabular}{lrrrr}
 		\hline
 		\textbf{Parameters}                &         \textbf{Range} & \textbf{Best} & \textbf{2nd Best} & \textbf{3rd Best} \\ \hline
-		Average Error Score                &                        &          6664 &              6987 &              7207 \\ \hline\hline
+		$LE$                &                        &          6664 &              6987 &              7207 \\ \hline\hline
 		nonmaximum\_supression\_radius     &                10:2:16 &            12 &                10 &                10 \\ \hline
 		add\_candidate\_each\_frame        &              50:50:200 &           150 &               200 &               200 \\ \hline
 		triangulate\_max\_repr\_error      & [0.5, 1, 2, 5, 10, 20] &             5 &                 5 &                 5 \\ \hline
@@ -71,12 +71,11 @@ Scale drift is a problem that cannot be solved with parameter tuning and must be
 	\end{tabular}
 \end{table}
 
-
-
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=1\textwidth]{figures/error_histogram}
-	\caption{Distribution of the location error $LE$ and orientation error $OE$. An outlier (23.79) was removed from the orientation errors. 
+	\caption{Distribution of the location error $LE$ and orientation error $OE$. 
+	An outlier (23.79) was removed from the orientation errors. 
 		$OE_{min}: 1.97$, 
 		$OE_{max}: 23.79$,
 		$OE_{med}: 2.89$,
@@ -86,15 +85,12 @@ Scale drift is a problem that cannot be solved with parameter tuning and must be
 	\label{fig:error_histogram}
 \end{figure}
 
-
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=1\textwidth]{figures/best10}
 	\caption{Parameter distribution of the best 10 results  (15\% of the dynamic range).}
 	\label{fig:best10}
 \end{figure}
-
-
 
 \begin{figure}[htp]
 	\centering
@@ -103,17 +99,9 @@ Scale drift is a problem that cannot be solved with parameter tuning and must be
 	\label{fig:best200}
 \end{figure}
 
-
-
 \begin{figure}[htp]
 	\centering
 	\includegraphics[width=1\textwidth]{figures/exceptions}
-	\caption{Parameter distribution of all runs that terminated due to loss of key point tracking. }
+	\caption{Parameter distribution of all runs that terminated due to excessive loss of key points. }
 	\label{fig:exceptions}
 \end{figure}
-
-
-
-
-
-

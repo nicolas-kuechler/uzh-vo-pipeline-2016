@@ -7,7 +7,7 @@ Compared to the data sets provided to us it includes some additional difficultie
 
 \begin{enumerate}
 \item \emph{Additional Camera Movement:} Due to the size and weight of the motorcycle, the camera is affected by a much larger amount of vibration originating from the motor. 
-The same factor also cause the vehicle to be subject to a lot more squat (leaning backwards on acceleration) and dive (leaning forward on breaking) than the cars used in the KITTI and the MALAGA data sets. 
+The same factor also causes the vehicle to be subject to a lot more squat (leaning backwards on acceleration) and dive (leaning forward on breaking) than the cars used in the KITTI and the MALAGA data sets. 
 This, together with leaning into turns, results in more camera rotation along the pitch and roll axes.
 
 \item \emph{Traffic:} Another factor that adds to the complexity of our data set is traffic. 
@@ -18,8 +18,8 @@ Additionally, two stops at red lights were made.
 \end{enumerate}
 
 The VO pipeline is robust to factors \emph{1.} and \emph{3.}. 
-The estimated path looks remains smooth and retains the overall direction well. 
-\emph{2.} however, is an issue to some degree: While the trajectory is not significantly affected by other vehicles, pedestrians passing by in front of the camera lead to the loss of most of the key points causing the detection of erroneous movement.
+The estimated path remains smooth and retains the overall direction well. 
+Factor \emph{2.} however, is an issue to some degree: While the trajectory is not significantly affected by other vehicles, pedestrians passing in front of the camera lead to the loss of most of the key points causing the detection of erroneous movement.
 
 \begin{figure}[htp]
 \subfloat[a normal frame]{\includegraphics[width=.3\textwidth]{figures/vespa_0014.png}}\hfill
@@ -31,7 +31,7 @@ The estimated path looks remains smooth and retains the overall direction well.
 \section{Bundle Adjustment}
 \label{bundle adjustment}
 As mentioned in section \ref{additionalWork}, the stand-alone VO pipeline suffers from a significant amount of scale drift. 
-This means that along the trajectory, the average scale of the displacements changes. 
+This means that along the trajectory the average scale of the displacements changes due to numerical errors. 
 For continuous operation, a form of overlapping windowed BA was implemented to counteract this drift. \coderef{main.m, runBA.m} 
 Every \baEveryNthFrame frames, the trajectory and landmarks are adjusted and replaced over a segment of the last \baReplaceframes frames. 
 In order to ensure continuity, the adjusted point cloud and trajectory are constrained such that the last two orientations and locations of the last segment coincide with first two orientations and locations of the newly adjusted segment. \par
@@ -47,10 +47,10 @@ Using BA, scale drift can be effectively counteracted as Fig. \ref{fig:BAeffect}
 \end{figure}
 % //////
 
+Figure \ref{fig:BAeffect} shows that BA reduces scale drift significantly and smooths the trajectory while keeping on a reliable heading during operation. These advantages come at the price of computing performance: VO with bundle adjustment uses about 40\% more computing time than VO without bundle adjustment.
+
 \section{Ground Truth Alignment and Error Analysis}
 \label{simulation}
 
-For a stable operation of the VO pipeline, optimized parameters must be chosen to control detection and matching of new key points, triangulation etc. 
-We determined these parameters by running a simulation \coderef {simMain.m, simTaskScheduler.m} on a benchmark data set (\emph{KITTI}) over various parameter choices and comparing the aligned \coderef{alignToGroundTruth.m} trajectories to the ground truth. This was done by calculating the total deviation in orientation and the total deviation in location.
-Using these error metrics a detailed error analysis was performed over the first 500 frames. 
-More information on this can be found in section \ref{performance}.
+For a stable operation of the VO pipeline, optimized parameters had to be chosen to control detection and matching of new key points, triangulation etc. 
+We determined these parameters by running a simulation \coderef {simMain.m, simTaskScheduler.m} on a benchmark data set (\emph{KITTI}) over various parameter choices. The computed trajectories were aligned with the ground truth and total squared error in orientation (angle deviation) and the total deviation in location was determined for the first 500 frames \coderef{alignToGroundTruth.m}. Using these error metrics optimal parameters could be identified which will be further discussed in section \ref{performance}.
