@@ -7,7 +7,6 @@ close all;
 addpath(genpath('./'));
 
 %% Configuration Section
-
 dataset_id = 0; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
 bundle_adjustment = true; 
 align_to_ground_truth = false;
@@ -42,9 +41,6 @@ elseif dataset_id == 2
     assert(exist('parking_path', 'var') ~= 0);
     last_frame = 598;
     K = load([parking_path '/K.txt']);
-     
-    ground_truth = load([parking_path '/poses.txt']);
-    ground_truth = ground_truth(:, [end-8 end]);
 elseif dataset_id == 3
     assert(exist('vespa_path', 'var') ~= 0);
     images = dir([vespa_path ...
@@ -98,7 +94,9 @@ params = struct('harris_patch_size', 9, ...
                 'nonmaximum_supression_radius', 10, ...
                 'descriptor_radius', 13,... 
                 'match_lambda', 8, ...
-                'triangulation_angle_threshold', 3,...
+                'use_adaptive_angles', true,...
+                'fix_triangulation_angle_threshold', 3,... % must be set if use_adaptive_angles is false
+                'adaptive_triangulation_angle', [100, 1.5, 200, 2, 300, 4, 500, 10, 30],... % [nKP_tres_1, angle_1, ... , nKP_tres_4, angle_4, angle_over_tres_4]
                 'surpress_existing_matches', true ,... 
                 'candidate_cap', 500,...
                 'add_candidate_each_frame', 150 ,...
@@ -111,6 +109,8 @@ params = struct('harris_patch_size', 9, ...
                 'ransac_num_iterations', 250, ...
                 'ransac_pixel_tolerance', 10);
 
+            
+            
 % Optimize parameters when bundle adjustment is active
 if bundle_adjustment
     params.ransac_num_iterations = 2000;
@@ -120,9 +120,6 @@ if bundle_adjustment
     params.ba_every_nth_frame = 3;
     params.triangulate_max_repr_error = 4;
     params.ransac_pixel_tolerance = 4;
-    params.triangulation_angle_threshold = 2;
-    params.candidate_cap = 500;
-    params.add_candidate_each_frame= 150;
 end
 
 % Bootstrap key frames
