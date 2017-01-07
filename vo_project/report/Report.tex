@@ -18,7 +18,7 @@
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\documentclass[12pt]{report}
+\documentclass[10pt]{report}
 \usepackage[a4paper]{geometry}
 \usepackage[myheadings]{fullpage}
 \usepackage{fancyhdr}
@@ -46,6 +46,7 @@
 \setcounter{tocdepth}{5}
 \setcounter{secnumdepth}{5}
 \setlength{\parindent}{0pt}
+\setlist{nosep}
 
 
 %-------------------------------------------------------------------------------
@@ -74,9 +75,10 @@
 
 \title{ \normalsize \textsc{Vision Algorithms for Mobile Robotics - HS 2016}
 \\ [2.0cm]
-\HRule{0.5pt} \\
+%\HRule{0.5pt} \\
 \LARGE \textbf{\uppercase{VO Project Report}}
-\HRule{2pt} \\ [0.5cm]
+%\HRule{2pt} 
+\\ [0.5cm]
 %\normalsize \today \vspace*{5\baselineskip}
 }
 
@@ -116,6 +118,7 @@ Cyrill Halter: 13-928-171 }
 \def \ransacNumIterationsBA {2000\,}
 \def \baEveryNthFrame {4\,} 
 \def \baReplace {6\,}
+\def \baReplaceframes{6\,} %TODO : DANIEL FIX THIS
 
 % VO
 \def \harrisPatchSize {9\,}
@@ -140,7 +143,6 @@ Cyrill Halter: 13-928-171 }
 \input{modules/01_Functionality}
 \input{modules/02_Additional_Features}
 \input{modules/03_Performance}
-\input{modules/04_Appendix}
 
 \end{document}
 

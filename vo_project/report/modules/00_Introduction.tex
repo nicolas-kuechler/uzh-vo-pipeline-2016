@@ -7,10 +7,11 @@ It relies on the input of a single visual sensor to estimate a trajectory which 
 \section{Overview}
 \label{params}
 Before starting our VO pipeline by executing the file \emph{main.m}, the tester may choose the data set and whether or not bundle adjustment and/or trajectory alignment to the ground truth should be performed. 
-can be adjusted in the \emph{Configuration Section} and are summarized in Table \ref{table:params}. 
+can be adjusted in the \emph{Configuration Section} and are summarized in Table \ref{table:params}. Once the pipeline is running an overview detailing the various operation parameters can be seen. 
+A typical overview is shown in figure \ref{fig:overview}. 
 
 % control parameters
-\begin{table}[]
+\begin{table}[ht]
 \centering
 \caption{Summary of control parameters}
 \label{table:params}
@@ -24,8 +25,6 @@ align\_to\_ground\_truth                & true, false                     & turn
 \end{table}
 % //////
 
-Once the pipeline is running an overview detailing the various operation parameters can be seen. 
-A typical overview is shown in figure \ref{fig:overview}. 
 
 % graphics of general overview
 \begin{figure}[H]

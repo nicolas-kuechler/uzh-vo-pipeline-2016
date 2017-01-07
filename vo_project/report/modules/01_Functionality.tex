@@ -1,10 +1,6 @@
 \chapter{Functionality of the VO Pipeline}
 The following points summarize the pipelines functionality. 
-Topics that are documented further in the code will be denoted by \coderef{filename} with the respective file name. 
-The loading of the data set, the bootstrapping of initial key points and processing of subsequent frames. 
-Periodically, multiple views help correct the structure and motion using bundle adjustment. 
-Finally, an optional alignment to the ground truth (achieved through scaling, rotation and translation) can be performed to judge the deviation from the reference. 
-The last two points are described further in sections \ref{bundle adjustment} and \ref{simulation}.
+Topics that are documented further in the code will be denoted by \coderef{filename} with the respective file name.
 
 \section{Bootstrapping}
 To initialize the pipeline, an initial point cloud is triangulated between two key frames (frame 1 and 3) and the respective camera homographies are estimated. 
@@ -20,7 +16,7 @@ Due to the large displacement of key points across images 3 pyramidal levels and
 In a second step the new camera homography is computed using the new 2D-3D correspondences between matched key points and landmarks. 
 This can be computed efficiently using the \emph{P3P algorithm} in conjunction with \emph{RANSAC} \coderef{localizationRANSAC.m}. 
 Using only three points allows for few iteration cycles (\ransacNumIterations cycles with a pixel tolerance of \ransacPixelTolerance). 
-Key points that are discarded by the \emph{KLT} tracker as well as outliers are removed together with their corresponding landmarks.\par
+Outliers and key points that are discarded by the \emph{KLT} tracker are removed together with their corresponding landmarks.\par
 
 Next, new landmarks are triangulated from candidate key points which have been tracked over several frames. 
 Tracks are discarded if they are lost by the \emph{KLT} tracker.
@@ -29,4 +25,4 @@ New landmarks are triangulated asynchronously as soon as the angle between the b
 New landmarks are discarded if their reprojection error exceeds \triangulationMaxReprError pixels or if they are triangulated behind the camera \coderef{tryTriangulate.m}. \par 
 This candidate loss through tracking and triangulation means that new candidate key points must be added continuously. 
 \addCandidateEachFrame new candidate key points are extracted from each frame using a Harris corner detector. 
-To achieve a more robust behavior, the \emph{Harris score} is suppressed around existing key points before feature extraction \coderef{suppressExistingMatches.m}.
+To achieve a more robust behavior, the \emph{Harris score} is suppressed around existing candidate key points before feature extraction \coderef{suppressExistingMatches.m}. This ensures that the same key points are not added multiple times.
