@@ -1,4 +1,4 @@
-function [next_kp, point_validity] = propagateState(kp, prev_img, next_img, params)
+function [next_kp, point_validity] = propagateState(kp, prev_img, next_img, params, bder)
 %PROPAGATESTATE Summary of this function goes here
 %   Detailed explanation goes here
 % create pointTracker
@@ -6,7 +6,7 @@ function [next_kp, point_validity] = propagateState(kp, prev_img, next_img, para
 bs = params.tracker_blocksize;
 
 pointTracker = vision.PointTracker( ...
-    'MaxBidirectionalError', params.tracker_max_bidirectional_error, ... 
+    'MaxBidirectionalError', bder, ... 
     'BlockSize', [bs,bs]);
 
 % initialize point tracker
