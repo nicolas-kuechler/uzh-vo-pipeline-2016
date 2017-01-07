@@ -1,5 +1,5 @@
 function [cloud, matched_kp, remain] = ...
-    tryTriangulate(candidates_current, candidates_start, candidates_start_pose, T, K, not_critical_kp, params)
+    tryTriangulate(candidates_current, candidates_start, candidates_start_pose, T, K, not_critical_kp,  triangulation_angle_threshold, params)
 % TRYTRIANGULATE function that takes candidate keypoints (candidate_k) and
 % key points at the start of the track (kp_track_start) and triangulates
 % new 3D points if their bearing angle in between is large enough.
@@ -36,7 +36,7 @@ u_norm = u ./ sqrt(sum(u.^2));
 
 % calculate angles
 angles = 180/pi * acos(sum(u_norm .* v_norm));
-tri = angles > params.triangulation_angle_threshold;
+tri = angles >  triangulation_angle_threshold;
 
 % triangulate all eligible points 
 new_3d_pt = zeros(3, sum(tri));
