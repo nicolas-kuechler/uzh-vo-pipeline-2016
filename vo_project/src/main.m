@@ -10,7 +10,7 @@ addpath(genpath('./'));
 
 dataset_id = 0; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
 bundle_adjustment = true; 
-align_to_ground_truth = false;
+align_to_ground_truth = true;
 
 kitti_path = '../data/kitti';
 malaga_path = '../data/malaga-urban-dataset-extract-07';
@@ -109,15 +109,21 @@ params = struct('harris_patch_size', 9, ...
                 'tracker_max_bidirectional_error', 5, ...
                 'tracker_blocksize', 13, ...
                 'ransac_num_iterations', 250, ...
-                'ransac_pixel_tolerance', 10);
+                'ransac_pixel_tolerance', 4);
 
 % Optimize parameters when bundle adjustment is active
 if bundle_adjustment
+    params.add_candidate_each_frame = 1000;
+    params.nonmaximum_supression_radius = 8;
     params.ransac_num_iterations = 2000;
+    params.surpress_existing_matches = false;
     params.runBA = true;
-    params.critical_kp = 50;
-    params.tracker_max_bidirectional_error = 2;
-    params.ba_every_nth_frame = 4;
+    params.candidate_cap = 500;
+    params.critical_kp = 20;
+    params.tracker_max_bidirectional_error = 2.5;
+    params.ba_every_nth_frame = 2;
+    params.triangulate_max_repr_error = 2.5;
+    params.ransac_pixel_tolerance = 2.5;
 end
 
 % Bootstrap key frames
