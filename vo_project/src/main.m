@@ -115,9 +115,11 @@ params = struct('harris_patch_size', 9, ...
 if bundle_adjustment
     params.ransac_num_iterations = 2000;
     params.runBA = true;
-    params.critical_kp = 50;
-    params.tracker_max_bidirectional_error = 2;
-    params.ba_every_nth_frame = 4;
+    params.critical_kp = 20;
+    params.tracker_max_bidirectional_error = 4;
+    params.ba_every_nth_frame = 3;
+    params.triangulate_max_repr_error = 4;
+    params.ransac_pixel_tolerance = 4;
 end
 
 % Bootstrap key frames
