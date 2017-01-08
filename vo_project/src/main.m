@@ -6,7 +6,7 @@ addpath(genpath('./'));
 
 %% Configuration Section
 dataset_id = 0; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
-bundle_adjustment = false; 
+bundle_adjustment = true; 
 align_to_ground_truth = false;
 
 kitti_path = '../data/kitti';
