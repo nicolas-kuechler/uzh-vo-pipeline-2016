@@ -14,7 +14,7 @@ During the analysis the following error metrics were used to compare trajectorie
 
 Where $i$ is the index along the trajectory, $LE$ is the location error, $OE$ is the orientation error, $p_{GT}$ and $R_{GT}$ are the ground truth location and orientation, $p_{est}$ and $R_{est}$ are the estimated location and orientation and $R^*$ is the argument for R when $LE$ is minimal. 
 The parameters $s$, $R$ and $t$ describe a generic similarity transformation. 
-The function \emph{rotMatToRotVec} transforms the rotation matrix into a rotation vector of the form $\phi = \theta n$ \coderef{rotMatToRotVec.m}.
+The function \emph{rotMatToRotVec} transforms the rotation matrix into a rotation vector of the form $\phi = \theta \textbf{n}$ \coderef{rotMatToRotVec.m}.
 
 \section{Preliminary Simulations}
 
@@ -61,7 +61,7 @@ Factoring in all available information, we arrived at the parameter configuratio
 		\hline
 		\textbf{Parameters}                &         \textbf{Range} & \textbf{Best} & \textbf{2nd Best} & \textbf{3rd Best} & \textbf{Chosen} \\ \hline
 		$LE$                &                        &          6664 &              6987 &              7207 &  \\ \hline\hline
-		nonmaximum\_supression\_radius     &                10:2:16 &            12 &                10 &                10 & 10\\ \hline
+		nonmaximum\_suppression\_radius     &                10:2:16 &            12 &                10 &                10 & 10\\ \hline
 		add\_candidate\_each\_frame        &              50:50:200 &           150 &               200 &               200 & 150\\ \hline
 		triangulate\_max\_repr\_error      & [0.5, 1, 2, 5, 10, 20] &             5 &                 5 &                 5 & 5\\ \hline
 		critical\_kp                       &       [0, 20, 50, 100] &           100 &                 0 &                 0 & 100\\ \hline
