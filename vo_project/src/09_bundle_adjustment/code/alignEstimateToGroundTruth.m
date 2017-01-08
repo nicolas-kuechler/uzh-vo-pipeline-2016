@@ -6,7 +6,7 @@ ground_truth_locations = ground_truth(:, 4:4:12)';
 ground_truth_orientations = ground_truth(:, [1,5,9,2,6,10,3,7,11])';
 
 % determine best rescaling and rotation of estimated trajectory with error
-error_function = @(x) alignmentError(x0, ground_truth_locations, location_estimate);
+error_function = @(x) alignmentError(x, ground_truth_locations, location_estimate);
 
 options = optimset('display','off');
 
