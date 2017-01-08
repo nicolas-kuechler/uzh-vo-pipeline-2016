@@ -11,9 +11,9 @@ The resulting inliers are then used to calculate the final landmarks and pose \c
 
 \section{Frame Processing}
 Subsequent frames are processed in a Markovian fashion, meaning that information from the previous frame is sufficient to compute all necessary variables of the next frame \coderef{processFrame.m}. \par
-When processing a new frame, first key points (matched with landmarks) are tracked from the previous image to the next image using the MATLAB implementation of a \emph{Kanade-Lucas-Tomasi tracker (KLT)} \coderef{propagageState.m}. 
-Due to the large displacement of key points across images, 3 pyramidal levels and a patch size of \trackerBlocksize x \trackerBlocksize pixels are used. \par
-In a second step the new camera homography is computed using the new 2D-3D correspondences between matched key points and landmarks. 
+When processing a new frame, key points (matched with landmarks) are tracked from the previous image to the next image using the MATLAB implementation of a \emph{Kanade-Lucas-Tomasi tracker (KLT)} \coderef{propagageState.m} in a first step. 
+Due to the large displacement of key points across images, 3 pyramidal levels and a patch size of \trackerBlocksize x \trackerBlocksize pixels is used. \par
+In a second step, the new camera homography is computed using the new 2D-3D correspondences between matched key points and landmarks. 
 This can be computed efficiently using the \emph{P3P algorithm} in conjunction with \emph{RANSAC} \coderef{localizationRANSAC.m}. 
 Using only three points allows for few iteration cycles (\ransacNumIterations cycles with a pixel tolerance of \ransacPixelTolerance). 
 Outliers and key points that are discarded by the \emph{KLT} tracker are removed together with their corresponding landmarks.\par
@@ -25,5 +25,5 @@ New landmarks are triangulated asynchronously as soon as the angle between the b
 New landmarks are discarded if their reprojection error exceeds \triangulationMaxReprError pixels or if they are triangulated behind the camera \coderef{tryTriangulate.m}. \par 
 This candidate loss through tracking and triangulation means that new candidate key points must be added continuously. 
 \addCandidateEachFrame new candidate key points are extracted from each frame using a Harris corner detector. 
-To achieve a more robust behavior, the \emph{Harris score} is suppressed around existing candidate key points before feature extraction \coderef{suppressExistingMatches.m}. This ensures that the same key points are not added multiple times and enables a more uniform distribution of key points across the frame. 
-In order to make our VO pipeline more robust to scale drift, we added an adaptive bearing angle threshold that depends on the number of currently matched key points and defines the angle necessary for candidates to be added as key points, the threshold being lower wen less key points are currently active.
+To achieve a more robust behavior, the \emph{Harris score} is suppressed around existing candidate key points before feature extraction \coderef{suppressExistingMatches.m}. This ensures that the same key points are not added multiple times and enables a more uniform distribution of key points across the frame. \par
+In order to make our VO pipeline more robust to scale drift, we added an adaptive bearing angle threshold that depends on the number of currently matched key points and defines the angle necessary for candidates to be added as key points, the threshold being lower when less key points are currently active.

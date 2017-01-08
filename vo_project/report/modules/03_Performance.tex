@@ -51,21 +51,21 @@ The final parameter is \emph{add\_candidate\_each\_frame} which is robust to fai
 
 \medskip
 
-Due to its optimality and robustness against failure the best combination (see table \ref{table:significant-param-tuning}) was chosen.
+Factoring in all available information, we arrived at the parameter configuration described in table \ref{table:significant-param-tuning} under \emph{Chosen}.
 
 \begin{table}[htp]
 	\centering
 	\caption{Parameter Fine Tuning: best three parameter combinations and their respective location error (LE). $LE_{max}$ : 23187, $LE_{min}$: 6664.9}
 	\label{table:significant-param-tuning}
-	\begin{tabular}{lrrrr}
+	\begin{tabular}{lrrrrr}
 		\hline
-		\textbf{Parameters}                &         \textbf{Range} & \textbf{Best} & \textbf{2nd Best} & \textbf{3rd Best} \\ \hline
-		$LE$                &                        &          6664 &              6987 &              7207 \\ \hline\hline
-		nonmaximum\_supression\_radius     &                10:2:16 &            12 &                10 &                10 \\ \hline
-		add\_candidate\_each\_frame        &              50:50:200 &           150 &               200 &               200 \\ \hline
-		triangulate\_max\_repr\_error      & [0.5, 1, 2, 5, 10, 20] &             5 &                 5 &                 5 \\ \hline
-		critical\_kp                       &       [0, 20, 50, 100] &           100 &                 0 &                 0 \\ \hline
-		tracker\_max\_bidirectional\_error &      [2.1, 5, 9999999] &             5 &               2,1 &                 5 \\ \hline
+		\textbf{Parameters}                &         \textbf{Range} & \textbf{Best} & \textbf{2nd Best} & \textbf{3rd Best} & \textbf{Chosen} \\ \hline
+		$LE$                &                        &          6664 &              6987 &              7207 &  \\ \hline\hline
+		nonmaximum\_supression\_radius     &                10:2:16 &            12 &                10 &                10 & 10\\ \hline
+		add\_candidate\_each\_frame        &              50:50:200 &           150 &               200 &               200 & 150\\ \hline
+		triangulate\_max\_repr\_error      & [0.5, 1, 2, 5, 10, 20] &             5 &                 5 &                 5 & 5\\ \hline
+		critical\_kp                       &       [0, 20, 50, 100] &           100 &                 0 &                 0 & 100\\ \hline
+		tracker\_max\_bidirectional\_error &      [2.1, 5, 9999999] &             5 &               2,1 &                 5 & 5\\ \hline
 	\end{tabular}
 \end{table}
 

@@ -31,12 +31,11 @@ Factor \emph{2.} however, is an issue to some degree: While the trajectory is no
 \section{Bundle Adjustment}
 \label{bundle adjustment}
 As mentioned in section \ref{additionalWork}, the stand-alone VO pipeline suffers from a significant amount of scale drift. 
-This means that along the trajectory the average scale of the displacements changes due to numerical errors. 
+This means that along the trajectory, the average scale of the displacements changes due to numerical errors and noise accumulation. 
 For continuous operation, a form of overlapping windowed BA was implemented to counteract this drift. \coderef{main.m, runBA.m} 
 Every \baEveryNthFrame frames, the trajectory and landmarks are adjusted and replaced over a segment of the last \baReplaceframes frames. 
 In order to ensure continuity, the adjusted point cloud and trajectory are constrained such that the last two orientations and locations of the last segment coincide with first two orientations and locations of the newly adjusted segment. \par
-In cases where most key points are lost, BA switches to the \emph{Levenberg-Marquardt algorithm}. In these cases the locations and orientations must be aligned manually.  
-Using BA, scale drift can be effectively counteracted as Fig. \ref{fig:BAeffect} shows.
+In cases where most key points are lost, BA switches to the \emph{Levenberg-Marquardt algorithm}. In these cases the locations and orientations must be aligned manually.
 
 % graphics of BA effect
 \begin{figure}[htp]
@@ -56,4 +55,4 @@ Figure \ref{fig:BAeffect} shows that BA reduces scale drift significantly, smoot
 \label{simulation}
 
 For a stable operation of the VO pipeline, optimized parameters had to be chosen to control detection and matching of new key points, triangulation etc. 
-We determined these parameters by running a simulation \coderef {simMain.m, simTaskScheduler.m} on a benchmark data set (\emph{KITTI}) over various parameter choices. The computed trajectories were aligned with the ground truth and total squared error in orientation (angle deviation) and the total deviation in location was determined for the first 500 frames \coderef{alignToGroundTruth.m}. Using these error metrics optimal parameters could be identified which will be further discussed in section \ref{performance}.
+We determined these parameters by running a simulation \coderef {simMain.m, simTaskScheduler.m} on a benchmark data set (\emph{KITTI}) over various parameter choices. The computed trajectories were aligned with the ground truth and total squared error in orientation (angle deviation) and the total deviation in location was determined for the first 500 frames \coderef{alignToGroundTruth.m}. Using these error metrics, optimal parameters could be identified which will be discussed further in section \ref{performance}.
