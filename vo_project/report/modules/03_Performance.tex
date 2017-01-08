@@ -7,53 +7,51 @@ In order to do a thorough optimization, a total of 15 parameters would have to b
 Brief descriptions of these parameters can be found in \emph{parameters.txt} \coderef{parameters.txt}.
 Such a large number of variables, however, leads to an intractable search space for optimization. 
 To curb the computational burden we segmented parameter selection into a preliminary simulation step \coderef{simTaskScheduler.m} which identified sensitive and non-sensitive parameters and a fine tuning step which investigated these parameters further. 
-During the analysis the following error metrics was used to compare trajectories.
+During the analysis the following error metrics were used to compare trajectories.
 
 \begin{equation*}LE = \underset{R,t,s}{\min} \sum_i (s R \cdot p_{est, i} + t - p_{GT, i})^2\end{equation*}
 \begin{equation*}OE = \sum_i \text{rotMatToRotVec}(R^* \cdot R_{est,i} \cdot R_{GT, i}^T)^2\end{equation*}
 
-Where $i$ is the index along the trajectory, $LE$ is the location error, $OE$ is the orientation error, $p_{GT}$ and $R_{GT}$ are the ground truth position and rotation, $p_{est}$ and $R_{est}$ are the estimated position and rotation and $R^*$ is the argument for R when $LE$ is minimal. 
+Where $i$ is the index along the trajectory, $LE$ is the location error, $OE$ is the orientation error, $p_{GT}$ and $R_{GT}$ are the ground truth location and orientation, $p_{est}$ and $R_{est}$ are the estimated location and orientation and $R^*$ is the argument for R when $LE$ is minimal. 
 The parameters $s$, $R$ and $t$ describe a generic similarity transformation. 
 The function \emph{rotMatToRotVec} transforms the rotation matrix into a rotation vector of the form $\phi = \theta n$ \coderef{rotMatToRotVec.m}.
 
 \section{Preliminary Simulations}
 
 First, a sensible parameter configuration was guessed for each cluster. 
-Then groups were fine tuned either manually or in simulation  
+Then groups were fine tuned either manually or using simulation.  
 Parameters which showed an increase in accuracy (deviation from ground truth, see chapter \ref{simulation}) and robustness (successful completion of run with varying other parameters) were selected at each step.
 
 \medskip
 
 Good Harris parameters (patch size = 9 and $\kappa$ =  0.08) where identified with low tracking loss. 
-Moreover, the maximal number of candidates was seen to have low impact above 500. 
+Moreover, the maximal number of candidates was determined to have low impact above 500. 
 The sensitive parameters and ranges were narrowed down to 5 and are presented in table \ref{table:significant-param-tuning}.
 
 \subsection{Parameter Fine Tuning}  
 
-In this step the parameters above parameters were varied in their ranges, while the other parameters were held constant and the OE and LE were recorded. 
+In this step the above parameters were varied in their ranges, while the other parameters were held constant and the OE and LE were recorded. 
 1000 different combinations were tested in total and their results are shown in an error histogram in figure \ref{fig:error_histogram}. 
-While the LE exhibits large spread ranging from a maximum of 23187 to a minimum of 6664.9 the orientation error has much smaller spread. 
-This shows that the location error is a much better indicator for quality of the trajectory than the OE so from here on only LE will be discussed.
-In table \ref{table:significant-param-tuning} the three best parameter combinations can be seen. 
-They have very low errors compared to the worst case and thus constitute strong optima in the search space.
+While the LE exhibits a large variance, the orientation error is much more concentrated in one peak. 
+This shows that the location error is influenced much more by the variation of our parameters so from here on only the LE will be discussed.
+In table \ref{table:significant-param-tuning} the three parameter combinations that lead to the lowest LE can be seen. \par
 To compare the robustness of these candidates it is necessary to see how well the algorithm performs for similar parameter combinations. 
-For this purpose histograms with the 10 best and 200 best parameters were constructed and are shown in figure \ref{fig:best10} and \ref{fig:best200}. 
-Each colored histogram represents a distribution of 10 data points for a particular parameter. 
+For this purpose histograms showing the distribution of the 10 best and 200 best results for each parameter were constructed and are shown in figure \ref{fig:best10} and \ref{fig:best200}.
 It can be seen that \emph{triangulate\_max\_repr\_error} is very robust as 50\% (5 out of 10) of the top 10 share this value. 
 It therefore makes sense that all top 3 candidates share this value. 
 Also with \emph{nonmaximum\_suppression\_radius} all top 3 share parameters with the majorities from the top 10. 
-This trend is further supported by the top 200 histograms.
+This trend is supported further by the top 200 histograms.
 The parameter \emph{tracker\_max\_bidirectional\_error} is shared by the top 3 and top 10. 
-If we compare \emph{critical\_kp} we see that although two of the top three share the same value as the majority in the top 10 the best value comes with a value of 100.
+If we compare \emph{critical\_kp} we see that although two of the top three share the same value as the majority in the top 10 the best value is reached with a value of 100.
 This can be explained by the fact that in the KITTI data set the second curve contains a dark patch which makes it hard to track key points. 
 If there is no safety net many runs will just fail because they have too few landmarks to perform localization. 
-A histogram with all the failing runs illustrates this point in figure  \ref{fig:exceptions}. 
-It is possible to see that a parameter value of 0 leads to the majority of the exceptions which leads us to believe that this value is not robust although it may be optimal. 
+A histogram displaying all failed runs illustrates this point in figure  \ref{fig:exceptions}. 
+It shows that a parameter value of 0 leads to the majority of the exceptions which leads us to believe that this value is not robust although it may be optimal. 
 The final parameter is \emph{add\_candidate\_each\_frame} which is robust to failure for all top 3 although not optimal for the best candidate.
 
 \medskip
 
-Due to its optimality and robustness against failure the best combination (see figure \ref{table:significant-param-tuning}) was chosen.
+Due to its optimality and robustness against failure the best combination (see table \ref{table:significant-param-tuning}) was chosen.
 
 \begin{table}[htp]
 	\centering
