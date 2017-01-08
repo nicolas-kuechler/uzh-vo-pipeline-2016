@@ -6,7 +6,7 @@ addpath(genpath('./'));
 
 %% Configuration Section
 dataset_id = 0; % 0: KITTI, 1: Malaga, 2: parking, 3: own dataset
-bundle_adjustment = true; 
+bundle_adjustment = false; 
 align_to_ground_truth = false;
 
 kitti_path = '../data/kitti';
@@ -104,8 +104,8 @@ params = struct('harris_patch_size', 9, ...
                 'critical_kp', 100, ...
                 'tracker_max_bidirectional_error', 5, ...
                 'tracker_blocksize', 13, ...
-                'ransac_num_iterations', 250, ...
-                'ransac_pixel_tolerance', 10);
+                'ransac_num_iterations', 500, ...
+                'ransac_pixel_tolerance', 5);
 
             
             
