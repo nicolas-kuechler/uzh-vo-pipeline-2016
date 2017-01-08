@@ -22,7 +22,7 @@ Next, new landmarks are triangulated from candidate key point tracks which have 
 Tracks are discarded if they are lost by the \emph{KLT} tracker.
 Triangulation is performed between the track end point and start point. 
 New landmarks are triangulated asynchronously as soon as the angle between the bearing vectors at the track start point and end point exceeds \triangulationAngleThreshold degrees. 
-New landmarks are discarded if their reprojection error exceeds \triangulationMaxReprError pixels or if they are triangulated behind the camera \coderef{tryTriangulate.m}. \par 
+New landmarks are discarded if their reprojection error exceeds \triangulationMaxReprError pixels or if they are triangulated behind the camera \coderef{tryTriangulate.m}. However, if the number of mathed key points drops below \criticalKp then these landmarks are no longer discarded. \par 
 This candidate loss through tracking and triangulation means that new candidate key points must be added continuously. 
 \addCandidateEachFrame new candidate key points are extracted from each frame using a Harris corner detector. 
 To achieve a more robust behavior, the \emph{Harris score} is suppressed around existing candidate key points before feature extraction \coderef{suppressExistingMatches.m}. This ensures that the same key points are not added multiple times and enables a more uniform distribution of key points across the frame. \par

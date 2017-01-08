@@ -106,11 +106,14 @@ Cyrill Halter: 13-928-171 }
 % Parameter values
 %-------------------------------------------------------------------------------
 % VO + BA
-\def \criticalKpBA {50\,}
-\def \trackerMaxBidirectionalErrorBA {2.1\,}
-\def \ransacNumIterationsBA {2000\,}
-\def \baEveryNthFrame {4\,} 
-\def \baReplaceframes {6\,} 
+\def \criticalKpBA {20\,}
+\def \trackerMaxBidirectionalErrorBA {4\,}
+\def \baEveryNthFrame {3\,} 
+\def \baReplaceframes {5\,} 
+\def \candidateCapBA {700\,}
+\def \addCandidateEachFrameBA {200\,}
+\def \triangulationMaxReprErrorBA {4\,}
+\def \ransacPixelToleranceBA {4\,}   
 
 % VO
 \def \harrisPatchSize {9\,}
@@ -121,13 +124,14 @@ Cyrill Halter: 13-928-171 }
 \def \matchLambda {8\,}
 \def \triangulationAngleThreshold {3\,}
 \def \candidateCap {500\,}
-\def \addCandidateEachFrame {100\,}
-\def \triangulationMaxReprError {20\,}
-\def \criticalKp {0\,}
-\def \trackerMaxBidirectionalError {infinity\,}
+\def \addCandidateEachFrame {150\,}
+\def \triangulationMaxReprError {5\,}
+\def \criticalKp {100\,}
+\def \trackerMaxBidirectionalError {5\,}
 \def \trackerBlocksize {13\,}
 \def \ransacNumIterations {500\,}
-\def \ransacPixelTolerance {10\,}
+\def \ransacPixelTolerance {5\,}                
+                
 
 \newcommand{\coderef}[1]{[$\square$\kern-0.78em{$\equiv$}\:#1]\:}
 

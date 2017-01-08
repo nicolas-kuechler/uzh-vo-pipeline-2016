@@ -79,7 +79,7 @@ if ~isempty(candidates_prev)
             triangulation_angle_threshold = params.adaptive_triangulation_angle(9);
         end
     else
-        triangulation_angle_threshold = params.fix_triangulation_angle_threshold;
+        triangulation_angle_threshold = params.triangulation_angle_threshold;
     end
     
     % Try to triangulate points

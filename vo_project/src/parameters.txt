@@ -20,7 +20,8 @@ heuristic which discards matches which are not strong enough during bootstrappin
 
 # triangulation_angle_threshold
 angle threshold between bearing vectors for candidate key points at which
-triangulation takes place. 
+triangulation takes place. Compared to adaptive_triangulation_angle these 
+are fixed.
 
 # surpress_existing_matches
 a flag controlling whether harris scores should be suppressed by existing 
@@ -60,5 +61,12 @@ number of iterations run by p3p RANSAC
 # ransac_pixel_tolerance
 inlier tolerance for p3p RANSAC
 
-#?ba_frequency
+# ba_frequency
 frequency of BA in frames
+
+# adaptive_triangulation_angle
+array consisting of 4 thresholds on number of matches defining 5 different 
+regimes for adaptive triangulation angle threshold.
+
+# use_adaptive_angles
+flag to control the usage of adaptive angles 

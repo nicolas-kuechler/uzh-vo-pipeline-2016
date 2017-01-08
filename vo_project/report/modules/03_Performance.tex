@@ -1,13 +1,13 @@
 \chapter{Performance}
 \label{performance}
 
-\section{Error Analysis of Params}
+\section{Error Analysis of Parameters}
 
 In order to do a thorough optimization, a total of 15 parameters would have to be varied simultaneously. 
 Brief descriptions of these parameters can be found in \emph{parameters.txt} \coderef{parameters.txt}.
 Such a large number of variables, however, leads to an intractable search space for optimization. 
 To curb the computational burden we segmented parameter selection into a preliminary simulation step \coderef{simTaskScheduler.m} which identified sensitive and non-sensitive parameters and a fine tuning step which investigated these parameters further. 
-During the analysis the following error metrics were used to compare trajectories.
+During the analysis the following error metrics were used to compare trajectories. The full analysis was done with fixed angle thresholds and without BA.
 
 \begin{equation*}LE = \underset{R,t,s}{\min} \sum_i (s R \cdot p_{est, i} + t - p_{GT, i})^2\end{equation*}
 \begin{equation*}OE = \sum_i \text{rotMatToRotVec}(R^* \cdot R_{est,i} \cdot R_{GT, i}^T)^2\end{equation*}
@@ -55,7 +55,7 @@ Factoring in all available information, we arrived at the parameter configuratio
 
 \begin{table}[htp]
 	\centering
-	\caption{Parameter Fine Tuning: best three parameter combinations and their respective location error (LE). $LE_{max}$ : 23187, $LE_{min}$: 6664.9}
+	\caption{Parameter Fine Tuning: Best three parameter combinations and their respective location error (LE). $LE_{max}$ : 23187, $LE_{min}$: 6664.9}
 	\label{table:significant-param-tuning}
 	\begin{tabular}{lrrrrr}
 		\hline
