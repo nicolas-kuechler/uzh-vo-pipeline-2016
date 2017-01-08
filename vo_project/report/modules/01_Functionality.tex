@@ -25,4 +25,4 @@ New landmarks are triangulated asynchronously as soon as the angle between the b
 New landmarks are discarded if their reprojection error exceeds \triangulationMaxReprError pixels or if they are triangulated behind the camera \coderef{tryTriangulate.m}. \par 
 This candidate loss through tracking and triangulation means that new candidate key points must be added continuously. 
 \addCandidateEachFrame new candidate key points are extracted from each frame using a Harris corner detector. 
-To achieve a more robust behavior, the \emph{Harris score} is suppressed around existing candidate key points before feature extraction \coderef{suppressExistingMatches.m}. This ensures that the same key points are not added multiple times.
+To achieve a more robust behavior, the \emph{Harris score} is suppressed around existing candidate key points before feature extraction \coderef{suppressExistingMatches.m}. This ensures that the same key points are not added multiple times and enables a more uniform distribution of key points across the frame.

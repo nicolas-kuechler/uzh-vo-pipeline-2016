@@ -58,7 +58,6 @@ plot(matched_kp(1,:),matched_kp(2,:),'gx', 'Linewidth', 2);
 daspect([1 1 1]);
 pbaspect([1 1 1]);
 title('Current Image');
-legend('Candidates', 'Landmarks');
 hold off;
 
 legend('Candidate KP','Matched KP')

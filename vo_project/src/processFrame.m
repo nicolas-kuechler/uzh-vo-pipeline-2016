@@ -40,11 +40,11 @@ curr_hidden_state = prev_state.hidden_state;
 curr_observations = prev_state.observations;
 
 %% Step 1: State Propagation
-[curr_matched_kp, point_validity] = propagateState(curr_matched_kp, prev_img, curr_img, params);
+[curr_matched_kp, point_validity_m] = propagateState(curr_matched_kp, prev_img, curr_img, params);
 
 % remove lost points
-curr_matched_kp = curr_matched_kp(:, point_validity);
-pt_cloud = pt_cloud(:,point_validity);
+curr_matched_kp = curr_matched_kp(:, point_validity_m);
+pt_cloud = pt_cloud(:,point_validity_m);
 
 %% Step 2: Pose Estimation
 % with new correspondence pt_cloud <-> curr_matched_kp determine new pose with RANSAC and P3P
@@ -58,12 +58,12 @@ pt_cloud = pt_cloud(:, inlier_mask);
 if ~isempty(candidates_prev)
     
     % Track candidate keypoints
-    [candidates_prev, point_validity] = propagateState(candidates_prev, prev_img, curr_img, params);
+    [candidates_prev, point_validity_c] = propagateState(candidates_prev, prev_img, curr_img, params);
     
     % Remove lost candidate keypoints
-    candidates_prev = candidates_prev(:, point_validity);
-    candidates_start = candidates_start(:, point_validity);
-    candidates_start_pose = candidates_start_pose(:, point_validity);
+    candidates_prev = candidates_prev(:, point_validity_c);
+    candidates_start = candidates_start(:, point_validity_c);
+    candidates_start_pose = candidates_start_pose(:, point_validity_c);
     
     if(params.use_adaptive_angles)
         nKp = size(curr_matched_kp,2);
@@ -117,16 +117,19 @@ if params.runBA
     curr_m = curr_observations(2);
     new_m = curr_m + size(new_pt_cloud, 2);
     
-    observations = curr_observations;
-    observations(2) = new_m;
-    observations(1) = curr_n + 1;
+    prev_k = size(prev_state.matched_kp, 2);
+    prev_l = curr_observations(end - prev_k + 1 : end);
     
-    l = zeros(1, ki);
-    reference_landmarks = reshape([hidden_pt_cloud, new_pt_cloud(:)'], 3, new_m);
-    for i = 1 : ki
-        l(i) = find(ismember(reference_landmarks', pt_cloud(:, i)', 'rows'));
-    end
-    observations = [observations, ki, curr_matched_kp(:)', l];
+    % tracking loss
+    prev_l = prev_l(point_validity_m);
+    
+    % ransac loss
+    prev_l = prev_l(inlier_mask);
+    
+    % new landmarks
+    l = [prev_l, curr_m + 1 : new_m];
+
+    observations = [curr_n + 1, new_m, curr_observations(3 : end), ki, curr_matched_kp(:)', l];
 else
     hidden_state = [];
     observations = [];
