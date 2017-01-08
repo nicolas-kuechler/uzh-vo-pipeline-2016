@@ -55,7 +55,7 @@ Figure \ref{fig:BAeffect} shows that BA reduces scale drift significantly, smoot
 \label{simulation}
 
 For a stable operation of the VO pipeline, optimized parameters had to be chosen to control detection and matching of new key points, triangulation etc. 
-We determined these parameters by running a simulation \coderef {simMain.m, simTaskScheduler.m} on a benchmark data set (\emph{KITTI}) over various parameter choices. The computed trajectories were aligned with the ground truth and total squared error in orientation (angle deviation) and the total deviation in location was determined for the first 500 frames \coderef{alignToGroundTruth.m}. Using these error metrics, optimal parameters could be identified which will be discussed further in section \ref{performance}. An aligned trajectory can be see in figure \ref{fig:alignment}. This trajectory alignment is done automatically if the flag \emph{align_to_ground_truth} is set.
+We determined these parameters by running a simulation \coderef {simMain.m, simTaskScheduler.m} on a benchmark data set (\emph{KITTI}) over various parameter choices. The computed trajectories were aligned with the ground truth and total squared error in orientation (angle deviation) and the total deviation in location was determined for the first 500 frames \coderef{alignToGroundTruth.m}. Using these error metrics, optimal parameters could be identified which will be discussed further in section \ref{performance}. An aligned trajectory can be see in figure \ref{fig:alignment}. This trajectory alignment is done automatically if the flag \emph{align\_to\_ground\_truth} is set.
 
 % graphics of aligned trajectory
 \begin{figure}[H]
